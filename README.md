@@ -44,20 +44,59 @@ This notebook implements:
 
 ## Installation
 
-1. Clone the repository
-2. Install dependencies:
+### Option 1: Automated Setup (Recommended)
+```bash
+# Run the setup script
+python setup_environment.py
+```
+
+### Option 2: Manual Setup
+1. Create virtual environment:
+   ```bash
+   python -m venv .venv
+   ```
+
+2. Activate virtual environment:
+   ```bash
+   # Windows
+   .venv\Scripts\activate
+   
+   # macOS/Linux
+   source .venv/bin/activate
+   ```
+
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
+### Important Notes:
+- **No API keys required** - CLIP model is downloaded locally
+- **No Hugging Face account needed** - uses public models
+- First run downloads ~500MB model files (cached for future use)
+
 ## Usage
 
-1. Run the Jupyter notebook:
+1. Activate virtual environment (if not already active):
+   ```bash
+   # Windows
+   .venv\Scripts\activate
+   
+   # macOS/Linux
+   source .venv/bin/activate
+   ```
+
+2. Start Jupyter notebook:
    ```bash
    jupyter notebook Part1_Data_Preparation_Embedding.ipynb
    ```
 
-2. Execute all cells in order to generate embeddings
+3. Execute all cells in order to generate embeddings
+
+4. Deactivate virtual environment when done:
+   ```bash
+   deactivate
+   ```
 
 ## Next Steps
 
