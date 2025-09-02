@@ -215,10 +215,13 @@ def main():
                             
                             # Display image
                             try:
-                                image = Image.open(result['image_path'])
-                                st.image(image, caption=f"#{result['rank']} {result['image_id']}", use_column_width=True)
-                            except:
-                                st.error(f"Could not load image: {result['image_id']}")
+                                if os.path.exists(result['image_path']):
+                                    image = Image.open(result['image_path'])
+                                    st.image(image, caption=f"#{result['rank']} {result['image_id']}", use_container_width=True)
+                                else:
+                                    st.error(f"Image file not found: {result['image_path']}")
+                            except Exception as e:
+                                st.error(f"Could not load image {result['image_id']}: {str(e)}")
                             
                             # Display caption and similarity
                             st.markdown(f"**Caption:** {result['caption']}")
@@ -247,7 +250,7 @@ def main():
         if uploaded_file is not None:
             # Display uploaded image
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+            st.image(image, caption="Uploaded Image", use_container_width=True)
             
             # Search button
             if st.button("🔍 Search Descriptions", type="primary"):
@@ -265,10 +268,13 @@ def main():
                         col1, col2 = st.columns([1, 2])
                         with col1:
                             try:
-                                result_image = Image.open(result['image_path'])
-                                st.image(result_image, caption=result['image_id'], use_column_width=True)
-                            except:
-                                st.error(f"Could not load image: {result['image_id']}")
+                                if os.path.exists(result['image_path']):
+                                    result_image = Image.open(result['image_path'])
+                                    st.image(result_image, caption=result['image_id'], use_container_width=True)
+                                else:
+                                    st.error(f"Image file not found: {result['image_path']}")
+                            except Exception as e:
+                                st.error(f"Could not load image {result['image_id']}: {str(e)}")
                         
                         with col2:
                             st.markdown(f"**Rank:** #{result['rank']}")
