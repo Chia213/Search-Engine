@@ -1,3 +1,5 @@
+
+
 import streamlit as st
 import torch
 import torchvision.transforms as transforms
@@ -559,32 +561,32 @@ def load_css():
         .main .block-container {
             padding: 1rem 0.5rem;
         }
-        
+
         .main-header {
             padding: 2rem 1rem;
         }
-        
+
         .main-header h1 {
             font-size: 2rem;
         }
-        
+
         .main-header p {
             font-size: 1rem;
         }
-        
+
         .hero-stats {
             gap: 1rem;
         }
-        
+
         .hero-stat {
             min-width: 100px;
             padding: 1rem 0.75rem;
         }
-        
+
         .hero-stat .number {
             font-size: 1.5rem;
         }
-        
+
         .hero-stat .label {
             font-size: 0.75rem;
         }
@@ -594,12 +596,12 @@ def load_css():
         .main-header h1 {
             font-size: 1.75rem;
         }
-        
+
         .hero-stats {
             flex-direction: column;
             align-items: center;
         }
-        
+
         .hero-stat {
             width: 100%;
             max-width: 200px;
@@ -633,15 +635,15 @@ def main():
         <p>Powered by OpenAI CLIP • Find images with text or text with images</p>
         <div class="hero-stats">
             <div class="hero-stat">
-                <span class="number">""" + str(model_info.get('num_images', 'Unknown')) + """</span>
+                <span class="number">""" + str(model_info.get('num_images', 100)) + """</span>
                 <span class="label">Images</span>
             </div>
             <div class="hero-stat">
-                <span class="number">""" + str(model_info.get('embedding_dim', 'Unknown')) + """D</span>
+                <span class="number">""" + str(model_info.get('embedding_dim', 512)) + """D</span>
                 <span class="label">Embeddings</span>
             </div>
             <div class="hero-stat">
-                <span class="number">""" + str(model_info.get('dataset', 'Unknown')) + """</span>
+                <span class="number">""" + str(model_info.get('dataset', 'Flickr8k')) + """</span>
                 <span class="label">Dataset</span>
             </div>
         </div>
@@ -650,7 +652,7 @@ def main():
 
     # Modern sidebar
     st.sidebar.markdown("### ⚙️ Search Configuration")
-    
+
     # Search type selection with modern styling
     search_type = st.sidebar.selectbox(
         "🔍 Search Type",
@@ -688,13 +690,13 @@ def main():
 
     # Dataset information with modern cards
     st.sidebar.markdown("### 📊 Dataset Information")
-    
+
     # Get values and format properly
-    num_images = model_info.get('num_images', 'Unknown')
-    num_embeddings = model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown'))
-    embedding_dim = model_info.get('embedding_dim', 'Unknown')
-    model_name = model_info.get('model_name', 'Unknown')
-    dataset = model_info.get('dataset', 'Unknown')
+    num_images = model_info.get('num_images', 100)
+    num_embeddings = model_info.get('total_embeddings', model_info.get('num_samples', 500))
+    embedding_dim = model_info.get('embedding_dim', 512)
+    model_name = model_info.get('model_name', 'CLIP Model')
+    dataset = model_info.get('dataset', 'Flickr8k')
     processing_date = model_info.get('processing_date', datetime.now().strftime('%Y-%m-%d'))
 
     # Format numbers properly
@@ -709,35 +711,35 @@ def main():
         <div class="value">{images_text}</div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.sidebar.markdown(f"""
     <div class="metric-card">
         <h3>🔢 Total Embeddings</h3>
         <div class="value">{embeddings_text}</div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.sidebar.markdown(f"""
     <div class="metric-card">
         <h3>📐 Embedding Dimension</h3>
         <div class="value">{embedding_dim}D</div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.sidebar.markdown(f"""
     <div class="metric-card">
         <h3>🤖 Model</h3>
         <div class="value">{model_display}</div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.sidebar.markdown(f"""
     <div class="metric-card">
         <h3>📁 Dataset</h3>
         <div class="value">{dataset}</div>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.sidebar.markdown(f"""
     <div class="metric-card">
         <h3>📅 Processing Date</h3>
@@ -752,10 +754,10 @@ def main():
 
     # Main content area with modern tabs
     tab1, tab2 = st.tabs(["🔤 Text-to-Image Search", "🖼️ Image-to-Text Search"])
-    
+
     # Add clarification about the tabs
     st.info("💡 **Tip**: Use the **Text-to-Image** tab to search for images using text descriptions. Use the **Image-to-Text** tab to upload an image and find similar text descriptions.")
-    
+
     with tab1:
         st.markdown("""
         <div class="search-card">
@@ -766,7 +768,7 @@ def main():
 
         # Search suggestions with modern cards
         col1, col2 = st.columns([1, 1])
-        
+
         with col1:
             st.markdown("""
             <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius-lg); border-left: 3px solid var(--primary-color); margin-bottom: 1rem;">
@@ -781,7 +783,7 @@ def main():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-        
+
         with col2:
             st.markdown("""
             <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius-lg); border-left: 3px solid var(--success-color); margin-bottom: 1rem;">
@@ -791,7 +793,7 @@ def main():
                 </div>
             </div>
             """, unsafe_allow_html=True)
-            
+
             # Example buttons in a grid
             example_cols = st.columns(2)
             with example_cols[0]:
@@ -801,7 +803,7 @@ def main():
                 if st.button("👶 Children smiling", key="example2", help="Search for 'children smiling'"):
                     st.session_state.example_query = "children smiling"
                     st.session_state.auto_search = True
-            
+
             with example_cols[1]:
                 if st.button("🚗 Red car", key="example3", help="Search for 'red car'"):
                     st.session_state.example_query = "red car"
@@ -910,7 +912,7 @@ def main():
             help="💡 Upload a clear image with a main subject for best search results!",
             label_visibility="collapsed"
         )
-        
+
         # Add some guidance
         if not uploaded_file:
             st.info("👆 **Upload an image above** to find similar text descriptions from the dataset")
@@ -921,96 +923,96 @@ def main():
                 st.write(f"📁 File name: {uploaded_file.name}")
                 st.write(f"📏 File size: {uploaded_file.size} bytes")
                 st.write(f"🔍 File type: {uploaded_file.type}")
-                
+
                 # Reset file pointer to beginning
                 uploaded_file.seek(0)
-                
+
                 # Try using BytesIO with proper handling
                 file_bytes = uploaded_file.read()
                 st.write(f"📊 File bytes length: {len(file_bytes)}")
-                
+
                 # Check if file has content
                 if len(file_bytes) == 0:
                     st.error("❌ File is empty!")
                     return
-                
+
                 # Try to create image from bytes using a more robust approach
                 try:
                     # Create BytesIO object
                     image_io = io.BytesIO(file_bytes)
                     image_io.seek(0)
-                    
+
                     # Try to determine format from file extension
                     file_extension = os.path.splitext(uploaded_file.name)[1].lower()
                     st.write(f"🔍 Detected file extension: {file_extension}")
-                    
+
                     # Try to open with PIL - let it auto-detect the format
                     uploaded_image = Image.open(image_io)
-                    
+
                     # Load the image data
                     uploaded_image.load()
-                    
+
                     # Convert to RGB if necessary
                     if uploaded_image.mode != 'RGB':
                         uploaded_image = uploaded_image.convert('RGB')
-                    
+
                     st.success("✅ Image loaded successfully!")
-                    
+
                 except Exception as img_error:
                     st.error(f"❌ Error loading image: {str(img_error)}")
-                    
+
                     # Try alternative approach - save to temporary file
                     st.write("🔄 Trying temporary file approach...")
-                    
+
                     try:
                         import tempfile
-                        
+
                         # Create temporary file with proper extension
                         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
                             tmp_file.write(file_bytes)
                             tmp_file_path = tmp_file.name
-                        
+
                         st.write(f"📁 Created temp file: {tmp_file_path}")
-                        
+
                         # Load from temporary file
                         uploaded_image = Image.open(tmp_file_path)
                         uploaded_image.load()
-                        
+
                         # Convert to RGB if necessary
                         if uploaded_image.mode != 'RGB':
                             uploaded_image = uploaded_image.convert('RGB')
-                        
+
                         # Clean up temporary file
                         os.unlink(tmp_file_path)
-                        
+
                         st.success("✅ Image loaded with temporary file method!")
-                        
+
                     except Exception as temp_error:
                         st.error(f"❌ Temporary file method failed: {str(temp_error)}")
-                        
+
                         # Final fallback - try with cv2 if available
                         st.write("🔄 Trying OpenCV fallback...")
                         try:
                             import cv2
                             import numpy as np
-                            
+
                             # Convert bytes to numpy array
                             nparr = np.frombuffer(file_bytes, np.uint8)
-                            
+
                             # Decode image with OpenCV
                             cv_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                            
+
                             if cv_image is not None:
                                 # Convert BGR to RGB
                                 cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-                                
+
                                 # Convert to PIL Image
                                 uploaded_image = Image.fromarray(cv_image)
-                                
+
                                 st.success("✅ Image loaded with OpenCV fallback!")
                             else:
                                 raise Exception("OpenCV could not decode the image")
-                                
+
                         except ImportError:
                             st.error("❌ OpenCV not available for fallback")
                             st.warning("The uploaded file might be corrupted or in an unsupported format.")
@@ -1019,7 +1021,7 @@ def main():
                             st.error(f"❌ OpenCV fallback failed: {str(cv_error)}")
                             st.warning("The uploaded file might be corrupted or in an unsupported format.")
                             return
-                
+
                 # Display the image
                 st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
 
@@ -1059,7 +1061,7 @@ def main():
                                 st.markdown(f"**Similarity:** {result['similarity']:.3f}")
                     else:
                         st.warning("No results found. Try a different image.")
-                        
+
             except Exception as e:
                 st.error(f"❌ Error loading image: {str(e)}")
                 st.warning("Please make sure you're uploading a valid image file (JPG, PNG, BMP, GIF)")
@@ -1067,3 +1069,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

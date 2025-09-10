@@ -1,3 +1,4 @@
+
 import gradio as gr
 import torch
 import torchvision.transforms as transforms
@@ -119,7 +120,8 @@ def search_images(query, num_results):
                 image_path = image_path[3:]  # Remove ../
 
             if os.path.exists(image_path):
-                caption = f"🎯 Similarity: {result['similarity']:.3f}\n📝 {result['caption']}"
+                caption = f"🎯 Similarity: {result['similarity']:.3f}
+📝 {result['caption']}"
                 gallery_items.append((image_path, caption))
             else:
                 # For missing images, we can't add them to the gallery
@@ -152,7 +154,8 @@ def search_descriptions(image, num_results):
                 image_path = image_path[3:]  # Remove ../
 
             if os.path.exists(image_path):
-                caption = f"🎯 Similarity: {result['similarity']:.3f}\n📝 {result['caption']}"
+                caption = f"🎯 Similarity: {result['similarity']:.3f}
+📝 {result['caption']}"
                 gallery_items.append((image_path, caption))
             else:
                 # For missing images, we can't add them to the gallery
@@ -204,7 +207,7 @@ def create_gradio_app():
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
             min-height: 100vh !important;
         }
-        
+
         /* Modern header styling */
         .gradio-container h1 {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
@@ -217,7 +220,7 @@ def create_gradio_app():
             margin: 2rem 0 !important;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         /* Card styling */
         .card {
             background: white !important;
@@ -228,7 +231,7 @@ def create_gradio_app():
             backdrop-filter: blur(10px) !important;
             margin: 1rem 0 !important;
         }
-        
+
         /* Button styling */
         .btn {
             border-radius: 16px !important;
@@ -241,17 +244,17 @@ def create_gradio_app():
             text-transform: uppercase !important;
             letter-spacing: 0.05em !important;
         }
-        
+
         .btn:hover {
             transform: translateY(-2px) !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
             color: white !important;
         }
-        
+
         /* Input styling */
         .input {
             border-radius: 16px !important;
@@ -262,13 +265,13 @@ def create_gradio_app():
             backdrop-filter: blur(10px) !important;
             font-size: 1rem !important;
         }
-        
+
         .input:focus {
             border-color: #6366f1 !important;
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
             background: white !important;
         }
-        
+
         /* Gallery styling */
         .gallery {
             border-radius: 20px !important;
@@ -277,16 +280,16 @@ def create_gradio_app():
             background: white !important;
             padding: 1rem !important;
         }
-        
+
         .gallery img {
             border-radius: 16px !important;
             transition: transform 0.3s ease !important;
         }
-        
+
         .gallery img:hover {
             transform: scale(1.02) !important;
         }
-        
+
         /* Tab styling */
         .tab-nav {
             background: rgba(255, 255, 255, 0.8) !important;
@@ -296,7 +299,7 @@ def create_gradio_app():
             margin: 2rem 0 !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         .tab-nav button {
             border-radius: 12px !important;
             font-weight: 700 !important;
@@ -304,13 +307,13 @@ def create_gradio_app():
             padding: 0.75rem 1.5rem !important;
             margin: 0.25rem !important;
         }
-        
+
         .tab-nav button.selected {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
             color: white !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         /* Status messages */
         .status {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
@@ -320,7 +323,7 @@ def create_gradio_app():
             font-weight: 600 !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         /* Dataset info cards */
         .dataset-card {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
@@ -330,17 +333,17 @@ def create_gradio_app():
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         /* Responsive design */
         @media (max-width: 768px) {
             .gradio-container {
                 padding: 1rem !important;
             }
-            
+
             .gradio-container h1 {
                 font-size: 2.5rem !important;
             }
-            
+
             .card {
                 padding: 1.5rem !important;
                 margin: 0.5rem 0 !important;
@@ -360,12 +363,12 @@ def create_gradio_app():
                 model_name = model_info.get('model_name', 'Unknown')
                 dataset = model_info.get('dataset', 'Unknown')
                 processing_date = model_info.get('processing_date', 'Unknown')
-                
+
                 # Format numbers properly
                 images_text = f"{num_images:,}" if isinstance(num_images, int) else str(num_images)
                 embeddings_text = f"{num_embeddings:,}" if isinstance(num_embeddings, int) else str(num_embeddings)
                 model_display = model_name.split('/')[-1] if '/' in model_name else model_name
-                
+
                 gr.Markdown(f"""
                 <div class="dataset-card">
                 <h3 style="margin: 0 0 1rem 0; color: #374151; font-size: 1.25rem; font-weight: 700;">📊 Dataset Information</h3>
@@ -386,13 +389,13 @@ def create_gradio_app():
                 <h3 style="margin: 0 0 1rem 0; color: #374151; font-size: 1.25rem; font-weight: 700;">🔥 Popular Searches</h3>
                 <p style="margin: 0 0 1rem 0; color: #6b7280; font-size: 0.875rem;">Try these popular search terms:</p>
                 """)
-                
+
                 # Create a simple list of popular searches
                 popular_text = '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">'
                 for search in popular_searches:
                     popular_text += f'<span style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600; display: inline-block; margin: 0.25rem;">{search}</span>'
                 popular_text += '</div></div>'
-                
+
                 gr.Markdown(popular_text)
 
         # Main search interface
@@ -430,7 +433,7 @@ def create_gradio_app():
                         <h3 style="margin: 0 0 1rem 0; color: #374151; font-size: 1.125rem; font-weight: 700;">🔥 Popular Searches</h3>
                         <p style="margin: 0 0 1rem 0; color: #6b7280; font-size: 0.875rem;">Click any suggestion to search:</p>
                         """)
-                        
+
                         # Create clickable search suggestion buttons
                         with gr.Row():
                             with gr.Column():
@@ -445,7 +448,7 @@ def create_gradio_app():
                                         lambda s=search: s, 
                                         outputs=text_query
                                     )
-                        
+
                         with gr.Row():
                             with gr.Column():
                                 for i, search in enumerate(popular_searches[4:]):  # Last 4 searches
@@ -459,7 +462,7 @@ def create_gradio_app():
                                         lambda s=search: s, 
                                         outputs=text_query
                                     )
-                        
+
                         gr.Markdown("""
                         <div class="dataset-card" style="margin-top: 1rem;">
                         <h3 style="margin: 0 0 1rem 0; color: #374151; font-size: 1.125rem; font-weight: 700;">💡 Search Tips</h3>
@@ -534,7 +537,7 @@ def create_gradio_app():
                         • JPG, JPEG<br>
                         • PNG<br>
                         • BMP, GIF<br><br>
-                        
+
                         <strong>Best results with:</strong><br>
                         • Clear, well-lit images<br>
                         • Single main subject<br>
@@ -584,3 +587,4 @@ if __name__ == "__main__":
         share=False,
         show_error=True
     )
+
