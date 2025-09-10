@@ -24,7 +24,6 @@ def load_clip_model():
     return model, processor
 
 # Load embeddings data
-@gr.cache()
 def load_embeddings_data():
     """Load pre-computed embeddings and metadata"""
     # Load embeddings
