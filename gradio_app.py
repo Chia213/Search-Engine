@@ -28,14 +28,14 @@ def load_clip_model():
 def load_embeddings_data():
     """Load pre-computed embeddings and metadata"""
     # Load embeddings
-    image_embeddings = np.load('../embeddings/image_embeddings.npy')
-    text_embeddings = np.load('../embeddings/text_embeddings.npy')
+    image_embeddings = np.load('embeddings/image_embeddings.npy')
+    text_embeddings = np.load('embeddings/text_embeddings.npy')
 
     # Load metadata
-    metadata = pd.read_csv('../embeddings/metadata.csv')
+    metadata = pd.read_csv('embeddings/metadata.csv')
 
     # Load model info
-    with open('../embeddings/model_info.json', 'r') as f:
+    with open('embeddings/model_info.json', 'r') as f:
         model_info = json.load(f)
 
     return image_embeddings, text_embeddings, metadata, model_info
