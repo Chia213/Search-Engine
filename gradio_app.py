@@ -113,21 +113,28 @@ def image_to_text_search(uploaded_image, top_k=5):
 def search_text_to_image(query, top_k):
     """Gradio interface for text-to-image search"""
     if not query.strip():
-        return "Please enter a search query."
+        return [], "Please enter a search query."
     
     results = text_to_image_search(query, int(top_k))
     
     if not results:
-        return "No results found."
+        return [], "No results found."
     
-    # Format results
-    output = f"🔍 **Search Results for: '{query}'**\n\n"
+    # Prepare images and captions for display
+    images = []
+    captions = []
+    
     for result in results:
-        output += f"**Rank {result['rank']}** (Similarity: {result['similarity']:.3f})\n"
-        output += f"📝 Caption: {result['caption']}\n"
-        output += f"🖼️ Image: {result['image_path']}\n\n"
+        image_path = result['image_path']
+        if os.path.exists(image_path):
+            images.append(image_path)
+            captions.append(f"Rank {result['rank']} (Similarity: {result['similarity']:.3f})\n{result['caption']}")
+        else:
+            # If image doesn't exist, create a placeholder
+            images.append(None)
+            captions.append(f"Rank {result['rank']} (Similarity: {result['similarity']:.3f})\n{result['caption']}\n❌ Image not found: {image_path}")
     
-    return output
+    return images, f"🔍 **Search Results for: '{query}'** - Found {len(images)} results"
 
 def search_image_to_text(image, top_k):
     """Gradio interface for image-to-text search"""
@@ -179,11 +186,19 @@ def create_gradio_app():
                     
                     with gr.Column():
                         text_output = gr.Markdown(label="Search Results")
+                        text_gallery = gr.Gallery(
+                            label="Search Results",
+                            show_label=True,
+                            elem_id="gallery",
+                            columns=2,
+                            rows=2,
+                            height="auto"
+                        )
                 
                 text_search_btn.click(
                     fn=search_text_to_image,
                     inputs=[text_input, top_k_text],
-                    outputs=text_output
+                    outputs=[text_gallery, text_output]
                 )
             
             # Image-to-Text Search Tab
