@@ -1,323 +1,334 @@
+
 import streamlit as st
 import torch
+import torchvision.transforms as transforms
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import numpy as np
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
-import json
 import os
+import json
 from datetime import datetime
+from sklearn.metrics.pairwise import cosine_similarity
+import warnings
+warnings.filterwarnings('ignore')
 
-# Page configuration
-st.set_page_config(
-    page_title="🚀 Advanced Multimodal Search Engine",
-    page_icon="🔍",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Set device
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Custom CSS for better styling
-st.markdown("""
-<style>
-.main-header {
-    font-size: 3rem;
-    color: #1f77b4;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.search-section {
-    background-color: #f0f2f6;
-    padding: 1.5rem;
-    border-radius: 10px;
-    margin: 1rem 0;
-}
-.result-card {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 0.5rem 0;
-}
-.similarity-score {
-    font-weight: bold;
-    color: #2e8b57;
-}
-</style>
-""", unsafe_allow_html=True)
-
+# Load CLIP model
 @st.cache_resource
-def load_model_and_data():
-    """Load the CLIP model and embeddings (cached for performance)"""
-    # Load model
-    model_name = "openai/clip-vit-base-patch32"
-    model = CLIPModel.from_pretrained(model_name)
-    processor = CLIPProcessor.from_pretrained(model_name)
-    
-    # Load embeddings and metadata
-    image_embeddings = np.load('embeddings/image_embeddings.npy')
-    text_embeddings = np.load('embeddings/text_embeddings.npy')
-    metadata = pd.read_csv('embeddings/metadata.csv')
-    
-    return model, processor, image_embeddings, text_embeddings, metadata
+def load_clip_model():
+    """Load CLIP model and processor"""
+    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    return model, processor
 
-class StreamlitSearchEngine:
-    def __init__(self, model, processor, image_embeddings, text_embeddings, metadata):
-        self.model = model
-        self.processor = processor
-        self.image_embeddings = image_embeddings
-        self.text_embeddings = text_embeddings
-        self.metadata = metadata
-    
-    def embed_text(self, text):
-        """Generate embedding for text input"""
-        try:
-            inputs = self.processor(text=[text], return_tensors="pt", padding=True, truncation=True)
-            with torch.no_grad():
-                text_features = self.model.get_text_features(**inputs)
-                text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-            return text_features.cpu().numpy().flatten()
-        except Exception as e:
-            st.error(f"Error processing text: {e}")
-            return None
-    
-    def embed_image(self, image):
-        """Generate embedding for image input"""
-        try:
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
-            inputs = self.processor(images=image, return_tensors="pt")
-            with torch.no_grad():
-                image_features = self.model.get_image_features(**inputs)
-                image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-            return image_features.cpu().numpy().flatten()
-        except Exception as e:
-            st.error(f"Error processing image: {e}")
-            return None
-    
-    def text_to_image_search(self, query, top_k=5):
-        """Search for images using text query"""
-        query_embedding = self.embed_text(query)
-        if query_embedding is None:
-            return None
-        
-        similarities = cosine_similarity([query_embedding], self.image_embeddings)[0]
-        top_indices = np.argsort(similarities)[::-1][:top_k]
-        
-        results = []
-        for i, idx in enumerate(top_indices):
-            result = {
-                'rank': i + 1,
-                'image_id': self.metadata.iloc[idx]['image_id'],
-                'image_path': self.metadata.iloc[idx]['image_path'],
-                'caption': self.metadata.iloc[idx]['caption'],
-                'similarity_score': similarities[idx]
-            }
-            results.append(result)
-        
-        return results
-    
-    def image_to_text_search(self, image, top_k=5):
-        """Search for text descriptions using image query"""
-        query_embedding = self.embed_image(image)
-        if query_embedding is None:
-            return None
-        
-        similarities = cosine_similarity([query_embedding], self.text_embeddings)[0]
-        top_indices = np.argsort(similarities)[::-1][:top_k]
-        
-        results = []
-        for i, idx in enumerate(top_indices):
-            result = {
-                'rank': i + 1,
-                'image_id': self.metadata.iloc[idx]['image_id'],
-                'image_path': self.metadata.iloc[idx]['image_path'],
-                'caption': self.metadata.iloc[idx]['caption'],
-                'similarity_score': similarities[idx]
-            }
-            results.append(result)
-        
-        return results
+# Load embeddings data
+@st.cache_data
+def load_embeddings_data():
+    """Load pre-computed embeddings and metadata"""
+    # Load embeddings
+    image_embeddings = np.load('../embeddings/image_embeddings.npy')
+    text_embeddings = np.load('../embeddings/text_embeddings.npy')
 
+    # Load metadata
+    metadata = pd.read_csv('../embeddings/metadata.csv')
+
+    # Load model info
+    with open('../embeddings/model_info.json', 'r') as f:
+        model_info = json.load(f)
+
+    return image_embeddings, text_embeddings, metadata, model_info
+
+# Load model and data
+model, processor = load_clip_model()
+image_embeddings, text_embeddings, metadata, model_info = load_embeddings_data()
+
+# Text-to-Image Search Function
+def text_to_image_search(query_text, top_k=5):
+    """Search for images based on text query"""
+    # Generate embedding for text query
+    inputs = processor(text=[query_text], return_tensors="pt", padding=True).to(device)
+
+    with torch.no_grad():
+        query_embedding = model.get_text_features(**inputs)
+        query_embedding = query_embedding / query_embedding.norm(dim=-1, keepdim=True)
+
+    # Calculate similarities with all image embeddings
+    similarities = cosine_similarity(query_embedding.cpu().numpy(), image_embeddings)[0]
+
+    # Get top-k most similar images
+    top_indices = np.argsort(similarities)[::-1][:top_k]
+
+    results = []
+    for idx in top_indices:
+        result = {
+            'image_id': metadata.iloc[idx]['image_id'],
+            'image_path': metadata.iloc[idx]['image_path'],
+            'caption': metadata.iloc[idx]['caption'],
+            'similarity': similarities[idx]
+        }
+        results.append(result)
+
+    return results
+
+# Image-to-Text Search Function
+def image_to_text_search(uploaded_image, top_k=5):
+    """Search for text descriptions based on uploaded image"""
+    # Generate embedding for uploaded image
+    inputs = processor(images=uploaded_image, return_tensors="pt").to(device)
+
+    with torch.no_grad():
+        query_embedding = model.get_image_features(**inputs)
+        query_embedding = query_embedding / query_embedding.norm(dim=-1, keepdim=True)
+
+    # Calculate similarities with all text embeddings
+    similarities = cosine_similarity(query_embedding.cpu().numpy(), text_embeddings)[0]
+
+    # Get top-k most similar text descriptions
+    top_indices = np.argsort(similarities)[::-1][:top_k]
+
+    results = []
+    for idx in top_indices:
+        result = {
+            'image_id': metadata.iloc[idx]['image_id'],
+            'image_path': metadata.iloc[idx]['image_path'],
+            'caption': metadata.iloc[idx]['caption'],
+            'similarity': similarities[idx]
+        }
+        results.append(result)
+
+    return results
+
+# Main Streamlit app
 def main():
+    st.set_page_config(
+        page_title="🔍 Search Engine",
+        page_icon="🔍",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+
     # Header
-    st.markdown('<h1 class="main-header">🚀 Advanced Multimodal Search Engine</h1>', unsafe_allow_html=True)
-    
-    # Sidebar with project information
-    with st.sidebar:
-        st.markdown("## 📋 Project Overview")
-        st.markdown("""
-        This is an advanced multimodal search engine that supports **bidirectional search**:
-        
-        - **🔍 Text-to-Image**: Find images based on text descriptions
-        - **🖼️ Image-to-Text**: Find text descriptions based on uploaded images
-        
-        ### 🛠️ Technology Stack:
-        - **CLIP Model**: OpenAI's multimodal model for text-image understanding
-        - **Streamlit**: Web application framework
-        - **PyTorch**: Deep learning framework
-        - **Transformers**: Hugging Face model library
-        - **Scikit-learn**: Similarity calculations
-        - **PIL**: Image processing
-        
-        ### 🎯 Key Features:
-        - Real-time multimodal search
-        - Confidence scoring
-        - Visual result display
-        - Interactive interface
-        - Performance analytics
-        """)
-        
-        st.markdown("## 📊 Dataset Info")
-        st.markdown("""
-        - **Images**: 10 sample images
-        - **Captions**: 10 corresponding descriptions
-        - **Embeddings**: 512-dimensional vectors
-        - **Model**: CLIP ViT-Base-Patch32
-        """)
-    
-    # Load model and data
-    with st.spinner('Loading model and data...'):
-        model, processor, image_embeddings, text_embeddings, metadata = load_model_and_data()
-        search_engine = StreamlitSearchEngine(model, processor, image_embeddings, text_embeddings, metadata)
-    
-    st.success('✅ Model and data loaded successfully!')
-    
+    st.title("🔍 Search Engine")
+    st.markdown("A powerful multimodal search engine using OpenAI CLIP")
+
+    # Sidebar
+    st.sidebar.header("Search Options")
+
+    # Search type selection
+    search_type = st.sidebar.radio(
+        "Choose search type:",
+        ["Text-to-Image Search", "Image-to-Text Search"]
+    )
+
+    # Number of results
+    top_k = st.sidebar.slider(
+        "Number of results:",
+        min_value=1,
+        max_value=20,
+        value=5,
+        help="Number of top results to display"
+    )
+
+    # Popular searches
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 🔥 Popular Searches")
+
+    popular_searches = [
+        "dog playing", "children smiling", "red car", "food cooking",
+        "person running", "cat sleeping", "blue sky", "water beach",
+        "house building", "tree nature", "person walking", "animal pet"
+    ]
+
+    # Create clickable search suggestions
+    for i, search in enumerate(popular_searches):
+        if st.sidebar.button(f"🔍 {search}", key=f"popular_{i}"):
+            st.session_state.popular_search = search
+            st.session_state.auto_search = True
+
+    # Display dataset info
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 📊 Dataset Information")
+
+    # Get values and format properly
+    num_images = model_info.get('num_images', 'Unknown')
+    num_embeddings = model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown'))
+    embedding_dim = model_info.get('embedding_dim', 'Unknown')
+    model_name = model_info.get('model_name', 'Unknown')
+    dataset = model_info.get('dataset', 'Unknown')
+    processing_date = model_info.get('processing_date', datetime.now().strftime('%Y-%m-%d'))
+
+    # Format numbers properly
+    images_text = f"{num_images:,}" if isinstance(num_images, int) else str(num_images)
+    embeddings_text = f"{num_embeddings:,}" if isinstance(num_embeddings, int) else str(num_embeddings)
+    model_display = model_name.split('/')[-1] if '/' in model_name else model_name
+
+    st.sidebar.metric("Total Images", images_text)
+    st.sidebar.metric("Total Embeddings", embeddings_text)
+    st.sidebar.metric("Embedding Dimension", f"{embedding_dim}D")
+    st.sidebar.metric("Model", model_display)
+    st.sidebar.metric("Dataset", dataset)
+    st.sidebar.metric("Processing Date", processing_date)
+
+    # Check if this is a demo dataset
+    num_images = model_info.get('num_images', len(metadata))
+    if isinstance(num_images, int) and num_images < 1000:
+        st.warning(f"⚠️ **Demo Mode**: You're using a small subset ({num_images:,} images) of the full Flickr8k dataset. For production use, run the full dataset processing in Part 1 to get all 8,091 images.")
+
     # Main content area
-    tab1, tab2, tab3 = st.tabs(["🔍 Text-to-Image Search", "🖼️ Image-to-Text Search", "📊 Analytics"])
-    
-    with tab1:
-        st.markdown('<div class="search-section">', unsafe_allow_html=True)
-        st.markdown("### 🔍 Text-to-Image Search")
-        st.markdown("Enter a text description to find the most similar images.")
-        
-        # Text input
-        text_query = st.text_input(
-            "Enter your search query:",
-            placeholder="e.g., 'dog running', 'beautiful sunset', 'person cooking'...",
-            help="Describe what you're looking for in the images"
+    if search_type == "Text-to-Image Search":
+        st.header("🔤 Text-to-Image Search")
+        st.markdown("Enter a text description to find similar images:")
+
+        # Search suggestions
+        st.markdown("#### 💡 Search Tips")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("**Try searching for:**")
+            st.markdown("• Animals: 'dog', 'cat', 'bird'")
+            st.markdown("• Activities: 'playing', 'running', 'cooking'")
+            st.markdown("• Objects: 'car', 'house', 'food'")
+            st.markdown("• Emotions: 'smiling', 'happy', 'sad'")
+
+        with col2:
+            st.markdown("**Example queries:**")
+            if st.button("🐕 A dog playing", key="example1"):
+                st.session_state.example_query = "a dog playing"
+                st.session_state.auto_search = True
+            if st.button("👶 Children smiling", key="example2"):
+                st.session_state.example_query = "children smiling"
+                st.session_state.auto_search = True
+            if st.button("🚗 Red car", key="example3"):
+                st.session_state.example_query = "red car"
+                st.session_state.auto_search = True
+            if st.button("🍕 Food cooking", key="example4"):
+                st.session_state.example_query = "food cooking"
+                st.session_state.auto_search = True
+
+        # Text input with better placeholder
+        query_text = st.text_input(
+            "🔍 Enter your search query:",
+            placeholder="Describe what you're looking for... (e.g., 'a dog playing in the park', 'children smiling', 'red car on street')",
+            help="💡 Be specific! Try describing objects, actions, colors, or emotions. The more descriptive, the better the results!",
+            value=st.session_state.get('example_query', st.session_state.get('popular_search', '')),
+            key="search_input"
         )
-        
-        # Search button
-        if st.button("🔍 Search Images", type="primary"):
-            if text_query:
-                with st.spinner('Searching for images...'):
-                    results = search_engine.text_to_image_search(text_query, top_k=5)
-                
+
+        # Clear example queries after use
+        if 'example_query' in st.session_state:
+            del st.session_state.example_query
+        if 'popular_search' in st.session_state:
+            del st.session_state.popular_search
+
+        # Check if we should auto-search (from popular searches or example queries)
+        should_search = st.session_state.get('auto_search', False)
+        if should_search:
+            st.session_state.auto_search = False  # Reset the flag
+            # Use example query if available, otherwise use popular search
+            query_text = st.session_state.get('example_query', st.session_state.get('popular_search', query_text))
+
+        if st.button("🔍 Search Images", type="primary") or should_search:
+            if query_text:
+                with st.spinner("Searching for images..."):
+                    results = text_to_image_search(query_text, top_k)
+
                 if results:
-                    st.markdown(f"### 📊 Results for: '{text_query}'")
-                    
+                    st.success(f"Found {len(results)} results for: '{query_text}'")
+
                     # Display results in columns
-                    cols = st.columns(2)
+                    cols = st.columns(min(3, len(results)))
                     for i, result in enumerate(results):
-                        with cols[i % 2]:
-                            st.markdown(f'<div class="result-card">', unsafe_allow_html=True)
-                            
-                            # Display image
+                        with cols[i % 3]:
                             try:
-                                if os.path.exists(result['image_path']):
-                                    image = Image.open(result['image_path'])
-                                    st.image(image, caption=f"#{result['rank']} {result['image_id']}", use_container_width=True)
+                                image_path = result['image_path']
+                                # Fix path - remove ../ if present
+                                if image_path.startswith('../'):
+                                    image_path = image_path[3:]  # Remove ../
+
+                                if os.path.exists(image_path):
+                                    image = Image.open(image_path)
+                                    st.image(image, caption=f"Similarity: {result['similarity']:.3f}", use_container_width=True)
+
+                                    # Display details
+                                    st.markdown(f"**Image ID:** {result['image_id']}")
+                                    st.markdown(f"**Caption:** {result['caption']}")
+                                    st.markdown(f"**Similarity:** {result['similarity']:.3f}")
                                 else:
-                                    st.error(f"Image file not found: {result['image_path']}")
+                                    st.error(f"Image not found: {image_path}")
                             except Exception as e:
-                                st.error(f"Could not load image {result['image_id']}: {str(e)}")
-                            
-                            # Display caption and similarity
-                            st.markdown(f"**Caption:** {result['caption']}")
-                            st.markdown(f"**Similarity:** <span class='similarity-score'>{result['similarity_score']:.3f}</span>", unsafe_allow_html=True)
-                            
-                            st.markdown('</div>', unsafe_allow_html=True)
-                else:
-                    st.error("No results found. Please try a different query.")
+                                st.error(f"Error loading image: {e}")
+                    else:
+                        st.warning("No results found. Try a different search query.")
             else:
                 st.warning("Please enter a search query.")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab2:
-        st.markdown('<div class="search-section">', unsafe_allow_html=True)
-        st.markdown("### 🖼️ Image-to-Text Search")
-        st.markdown("Upload an image to find the most similar text descriptions.")
-        
+
+    else:  # Image-to-Text Search
+        st.header("🖼️ Image-to-Text Search")
+        st.markdown("Upload an image to find similar text descriptions:")
+
+        # Upload guidance
+        st.markdown("#### 📋 Upload Guidelines")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("**Supported formats:**")
+            st.markdown("• JPG, JPEG")
+            st.markdown("• PNG")
+            st.markdown("• BMP, GIF")
+
+        with col2:
+            st.markdown("**Best results with:**")
+            st.markdown("• Clear, well-lit images")
+            st.markdown("• Single main subject")
+            st.markdown("• Good contrast")
+
         # Image upload
         uploaded_file = st.file_uploader(
-            "Choose an image file:",
-            type=['png', 'jpg', 'jpeg'],
-            help="Upload an image to find similar text descriptions"
+            "📁 Choose an image file:",
+            type=['jpg', 'jpeg', 'png', 'bmp', 'gif'],
+            help="💡 Upload a clear image with a main subject for best search results!",
+            label_visibility="collapsed"
         )
-        
+
         if uploaded_file is not None:
             # Display uploaded image
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
-            
-            # Search button
+            uploaded_image = Image.open(uploaded_file)
+            st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
+
             if st.button("🔍 Search Descriptions", type="primary"):
-                with st.spinner('Searching for similar descriptions...'):
-                    results = search_engine.image_to_text_search(image, top_k=5)
-                
+                with st.spinner("Searching for similar descriptions..."):
+                    results = image_to_text_search(uploaded_image, top_k)
+
                 if results:
-                    st.markdown("### 📊 Most Similar Descriptions")
-                    
-                    # Display results
-                    for result in results:
-                        st.markdown(f'<div class="result-card">', unsafe_allow_html=True)
-                        
-                        # Display image and caption
-                        col1, col2 = st.columns([1, 2])
-                        with col1:
+                    st.success(f"Found {len(results)} similar descriptions")
+
+                    # Display results in columns
+                    cols = st.columns(min(3, len(results)))
+                    for i, result in enumerate(results):
+                        with cols[i % 3]:
                             try:
-                                if os.path.exists(result['image_path']):
-                                    result_image = Image.open(result['image_path'])
-                                    st.image(result_image, caption=result['image_id'], use_container_width=True)
+                                image_path = result['image_path']
+                                # Fix path - remove ../ if present
+                                if image_path.startswith('../'):
+                                    image_path = image_path[3:]  # Remove ../
+
+                                if os.path.exists(image_path):
+                                    original_image = Image.open(image_path)
+                                    st.image(original_image, caption="Original Image", use_container_width=True)
                                 else:
-                                    st.error(f"Image file not found: {result['image_path']}")
+                                    st.error(f"Original image not found: {image_path}")
                             except Exception as e:
-                                st.error(f"Could not load image {result['image_id']}: {str(e)}")
-                        
-                        with col2:
-                            st.markdown(f"**Rank:** #{result['rank']}")
-                            st.markdown(f"**Description:** {result['caption']}")
-                            st.markdown(f"**Similarity:** <span class='similarity-score'>{result['similarity_score']:.3f}</span>", unsafe_allow_html=True)
-                        
-                        st.markdown('</div>', unsafe_allow_html=True)
+                                st.error(f"Error loading original image: {e}")
+
+                            # Display details
+                            st.markdown(f"**Image ID:** {result['image_id']}")
+                            st.markdown(f"**Caption:** {result['caption']}")
+                            st.markdown(f"**Similarity:** {result['similarity']:.3f}")
                 else:
-                    st.error("No results found. Please try a different image.")
-        else:
-            st.info("👆 Please upload an image to search for similar descriptions.")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("### 📊 Search Analytics")
-        
-        # Dataset statistics
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Images", len(metadata))
-        with col2:
-            st.metric("Embedding Dimension", "512")
-        with col3:
-            st.metric("Model", "CLIP ViT-Base")
-        with col4:
-            st.metric("Search Types", "2 (Text↔Image)")
-        
-        # Sample data display
-        st.markdown("### 📋 Dataset Sample")
-        st.dataframe(metadata.head(10), use_container_width=True)
-        
-        # Model information
-        st.markdown("### 🤖 Model Information")
-        st.markdown("""
-        **CLIP (Contrastive Language-Image Pre-training)**
-        
-        - **Architecture**: Vision Transformer (ViT) + Text Encoder
-        - **Training**: Contrastive learning on 400M image-text pairs
-        - **Capabilities**: Understanding relationships between images and text
-        - **Embedding Space**: 512-dimensional shared representation
-        - **Use Cases**: Image search, text search, multimodal understanding
-        """)
+                    st.warning("No results found. Try a different image.")
 
 if __name__ == "__main__":
     main()

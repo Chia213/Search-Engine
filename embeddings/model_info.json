@@ -1,6 +1,10 @@
 {
   "model_name": "openai/clip-vit-base-patch32",
   "embedding_dim": 512,
-  "num_samples": 10,
-  "device_used": "cpu"
+  "num_samples": 500,
+  "num_images": 8091,
+  "total_embeddings": 500,
+  "device_used": "cpu",
+  "processing_date": "2025-09-10",
+  "dataset": "Flickr8k"
 }

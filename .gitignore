@@ -21,9 +21,16 @@ env/
 Thumbs.db
 
 # Project specific
-# Uncomment if you want to ignore generated embeddings
-# embeddings/
-
-# Uncomment if you have large datasets
+# Large datasets - DO NOT commit these
 data/images/
-data/*.zip
+data/*.jpg
+data/*.jpeg
+data/*.png
+
+# Generated embeddings - can be regenerated
+embeddings/
+
+# Large model files
+*.bin
+*.safetensors
+
