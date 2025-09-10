@@ -16,7 +16,6 @@ warnings.filterwarnings('ignore')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load CLIP model
-@gr.cache()
 def load_clip_model():
     """Load CLIP model and processor"""
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
