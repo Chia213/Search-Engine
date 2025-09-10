@@ -1,0 +1,10 @@
+0001.jpg A dog is running in the park
+0002.jpg A cat is sitting on a windowsill
+0003.jpg Children are playing in the playground
+0004.jpg A beautiful sunset over the ocean
+0005.jpg A person riding a bicycle on the street
+0006.jpg A bird is flying in the sky
+0007.jpg A car is parked in front of a house
+0008.jpg A flower garden in full bloom
+0009.jpg A mountain landscape with snow
+0010.jpg A person cooking in the kitchen

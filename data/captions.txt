@@ -1,10 +1,85 @@
-0001.jpg A dog is running in the park
-0002.jpg A cat is sitting on a windowsill
-0003.jpg Children are playing in the playground
-0004.jpg A beautiful sunset over the ocean
-0005.jpg A person riding a bicycle on the street
-0006.jpg A bird is flying in the sky
-0007.jpg A car is parked in front of a house
-0008.jpg A flower garden in full bloom
-0009.jpg A mountain landscape with snow
-0010.jpg A person cooking in the kitchen
+1000268201_693b08cb0e#0 A child in a pink dress is climbing up a set of stairs in an entry way
+1000268201_693b08cb0e#1 A girl going into a wooden building
+1000268201_693b08cb0e#2 A little girl climbing into a wooden playhouse
+1000268201_693b08cb0e#3 A little girl climbing the stairs to her playhouse
+1000268201_693b08cb0e#4 A little girl in a pink dress going up a staircase
+1001773457_577c3a7d70#0 A black dog and a spotted dog are fighting
+1001773457_577c3a7d70#1 A black dog and a tri-colored dog are fighting
+1001773457_577c3a7d70#2 Two dogs of different breeds are playing together
+1001773457_577c3a7d70#3 Two dogs are wrestling and playing
+1001773457_577c3a7d70#4 Two dogs are playing together
+1002674143_1b742ab4b8#0 A man in a blue shirt is standing at a grill
+1002674143_1b742ab4b8#1 A man is grilling food on a barbecue
+1002674143_1b742ab4b8#2 A man is cooking on a grill outdoors
+1002674143_1b742ab4b8#3 A man in a blue shirt is cooking on a grill
+1002674143_1b742ab4b8#4 A man is standing at a barbecue grill
+1003163366_44323f5815#0 A group of people are standing around a table
+1003163366_44323f5815#1 Several people are gathered around a table
+1003163366_44323f5815#2 A group of people are standing around a dining table
+1003163366_44323f5815#3 People are standing around a table
+1003163366_44323f5815#4 A group of people are gathered around a table
+1007129816_e794419615#0 A dog is running through a field
+1007129816_e794419615#1 A dog is running in a grassy field
+1007129816_e794419615#2 A dog is running through grass
+1007129816_e794419615#3 A dog is running in a field
+1007129816_e794419615#4 A dog is running through a grassy area
+1007320043_627395c3d8#0 A person is riding a bicycle
+1007320043_627395c3d8#1 A cyclist is riding a bike
+1007320043_627395c3d8#2 A person is cycling on a bike
+1007320043_627395c3d8#3 A cyclist is riding a bicycle
+1007320043_627395c3d8#4 A person is riding a bike
+1009434119_febe49276a#0 A group of people are sitting at a table
+1009434119_febe49276a#1 Several people are seated at a table
+1009434119_febe49276a#2 A group of people are sitting around a table
+1009434119_febe49276a#3 People are sitting at a table
+1009434119_febe49276a#4 A group of people are seated around a table
+1012212859_01547e3f17#0 A person is playing a guitar
+1012212859_01547e3f17#1 A musician is playing a guitar
+1012212859_01547e3f17#2 A person is strumming a guitar
+1012212859_01547e3f17#3 A guitarist is playing music
+1012212859_01547e3f17#4 A person is playing guitar
+1015118661_980735411b#0 A dog is sitting on a couch
+1015118661_980735411b#1 A dog is resting on a sofa
+1015118661_980735411b#2 A dog is sitting on furniture
+1015118661_980735411b#3 A dog is on a couch
+1015118661_980735411b#4 A dog is sitting on a sofa
+1015584366_dfcec3c85a#0 A person is swimming in a pool
+1015584366_dfcec3c85a#1 A swimmer is in a swimming pool
+1015584366_dfcec3c85a#2 A person is swimming
+1015584366_dfcec3c85a#3 A swimmer is in a pool
+1015584366_dfcec3c85a#4 A person is swimming in water
+101654506_8eb26cfb60#0 A cat is sitting on a windowsill
+101654506_8eb26cfb60#1 A cat is looking out a window
+101654506_8eb26cfb60#2 A cat is sitting by a window
+101654506_8eb26cfb60#3 A cat is on a windowsill
+101654506_8eb26cfb60#4 A cat is sitting near a window
+101669240_b2d3e7f17b#0 A person is cooking in a kitchen
+101669240_b2d3e7f17b#1 A chef is cooking in a kitchen
+101669240_b2d3e7f17b#2 A person is preparing food in a kitchen
+101669240_b2d3e7f17b#3 A cook is working in a kitchen
+101669240_b2d3e7f17b#4 A person is cooking food
+1016887272_03199f49c4#0 A group of children are playing
+1016887272_03199f49c4#1 Children are playing together
+1016887272_03199f49c4#2 Kids are playing
+1016887272_03199f49c4#3 Children are having fun
+1016887272_03199f49c4#4 A group of kids are playing
+1019077836_6fc9b15408#0 A person is reading a book
+1019077836_6fc9b15408#1 A reader is holding a book
+1019077836_6fc9b15408#2 A person is reading
+1019077836_6fc9b15408#3 Someone is reading a book
+1019077836_6fc9b15408#4 A person is looking at a book
+1019604187_d087bf9a5f#0 A dog is playing with a ball
+1019604187_d087bf9a5f#1 A dog is playing fetch
+1019604187_d087bf9a5f#2 A dog is playing with a toy
+1019604187_d087bf9a5f#3 A dog is playing
+1019604187_d087bf9a5f#4 A dog is having fun with a ball
+1020651753_06077ec457#0 A person is walking on a beach
+1020651753_06077ec457#1 A person is walking on sand
+1020651753_06077ec457#2 A person is on a beach
+1020651753_06077ec457#3 Someone is walking on a beach
+1020651753_06077ec457#4 A person is walking by the ocean
+1022454332_6af2c1449a#0 A person is riding a horse
+1022454332_6af2c1449a#1 A rider is on a horse
+1022454332_6af2c1449a#2 A person is horseback riding
+1022454332_6af2c1449a#3 A rider is on horseback
+1022454332_6af2c1449a#4 A person is riding an animal

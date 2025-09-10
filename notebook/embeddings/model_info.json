@@ -1,0 +1,6 @@
+{
+  "model_name": "openai/clip-vit-base-patch32",
+  "embedding_dim": 512,
+  "num_samples": 10,
+  "device_used": "cpu"
+}
