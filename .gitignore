@@ -25,5 +25,5 @@ Thumbs.db
 # embeddings/
 
 # Uncomment if you have large datasets
-# data/images/
-# data/*.zip
+data/images/
+data/*.zip
