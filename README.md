@@ -1,4 +1,4 @@
-# 🔍 Multimodal Search Engine
+# 🔍 Search Engine
 
 A sophisticated AI-powered search engine that finds images based on text descriptions and text descriptions based on uploaded images. Built using CLIP model and advanced machine learning techniques.
 

@@ -178,8 +178,8 @@ def search_image_to_text(image, top_k):
 def create_gradio_app():
     """Create the Gradio application"""
     
-    with gr.Blocks(title="🔍 Multimodal Search Engine") as app:
-        gr.Markdown("# 🔍 Multimodal Search Engine")
+    with gr.Blocks(title="🔍 Search Engine") as app:
+        gr.Markdown("# 🔍 Search Engine")
         gr.Markdown("Search for images using text descriptions or find text descriptions using uploaded images.")
         
         with gr.Tabs():
