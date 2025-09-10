@@ -148,83 +148,40 @@ def search_image_to_text(image, top_k):
     
     return output
 
-# Create Gradio Interface
+# Create Gradio Interface using simple Interface
 def create_gradio_app():
-    """Create the Gradio application"""
+    """Create the Gradio application using simple Interface"""
     
-    with gr.Blocks(title="🔍 Multimodal Search Engine") as app:
-        gr.Markdown("# 🔍 Multimodal Search Engine")
-        gr.Markdown("Search for images using text descriptions or find text descriptions using uploaded images.")
-        
-        with gr.Tabs():
-            # Text-to-Image Search Tab
-            with gr.Tab("🔤 Text to Image Search"):
-                gr.Markdown("Enter a text description to find similar images.")
-                
-                with gr.Row():
-                    with gr.Column():
-                        text_input = gr.Textbox(
-                            label="Search Query",
-                            placeholder="Enter a description (e.g., 'a dog running in the park')",
-                            lines=2
-                        )
-                        top_k_text = gr.Slider(
-                            minimum=1,
-                            maximum=10,
-                            value=5,
-                            step=1,
-                            label="Number of Results"
-                        )
-                        text_search_btn = gr.Button("🔍 Search", variant="primary")
-                    
-                    with gr.Column():
-                        text_output = gr.Markdown(label="Search Results")
-                
-                text_search_btn.click(
-                    fn=search_text_to_image,
-                    inputs=[text_input, top_k_text],
-                    outputs=text_output
-                )
-            
-            # Image-to-Text Search Tab
-            with gr.Tab("🖼️ Image to Text Search"):
-                gr.Markdown("Upload an image to find similar text descriptions.")
-                
-                with gr.Row():
-                    with gr.Column():
-                        image_input = gr.Image(
-                            label="Upload Image",
-                            type="filepath"
-                        )
-                        top_k_image = gr.Slider(
-                            minimum=1,
-                            maximum=10,
-                            value=5,
-                            step=1,
-                            label="Number of Results"
-                        )
-                        image_search_btn = gr.Button("🔍 Search", variant="primary")
-                    
-                    with gr.Column():
-                        image_output = gr.Markdown(label="Search Results")
-                
-                image_search_btn.click(
-                    fn=search_image_to_text,
-                    inputs=[image_input, top_k_image],
-                    outputs=image_output
-                )
-        
-        # Dataset Information
-        with gr.Row():
-            gr.Markdown(f"""
-            ### 📊 Dataset Information
-            - **Total Images**: {model_info.get('num_images', 'Unknown'):,}
-            - **Total Embeddings**: {model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown')):,}
-            - **Embedding Dimension**: {model_info.get('embedding_dim', 'Unknown')}D
-            - **Model**: {model_info.get('model_name', 'Unknown').split('/')[-1]}
-            - **Dataset**: {model_info.get('dataset', 'Unknown')}
-            - **Processing Date**: {model_info.get('processing_date', 'Unknown')}
-            """)
+    # Text-to-Image Interface
+    text_interface = gr.Interface(
+        fn=search_text_to_image,
+        inputs=[
+            gr.Textbox(label="Search Query", placeholder="Enter a description (e.g., 'a dog running in the park')"),
+            gr.Slider(minimum=1, maximum=10, value=5, step=1, label="Number of Results")
+        ],
+        outputs=gr.Textbox(label="Search Results", lines=10),
+        title="🔤 Text to Image Search",
+        description="Enter a text description to find similar images."
+    )
+    
+    # Image-to-Text Interface
+    image_interface = gr.Interface(
+        fn=search_image_to_text,
+        inputs=[
+            gr.Image(label="Upload Image", type="filepath"),
+            gr.Slider(minimum=1, maximum=10, value=5, step=1, label="Number of Results")
+        ],
+        outputs=gr.Textbox(label="Search Results", lines=10),
+        title="🖼️ Image to Text Search",
+        description="Upload an image to find similar text descriptions."
+    )
+    
+    # Combine interfaces
+    app = gr.TabbedInterface(
+        [text_interface, image_interface],
+        ["Text to Image", "Image to Text"],
+        title="🔍 Multimodal Search Engine"
+    )
     
     return app
 
