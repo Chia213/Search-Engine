@@ -123,37 +123,56 @@ def search_text_to_image(query, top_k):
     # Prepare images and captions for display
     images = []
     captions = []
+    detailed_results = []
     
     for result in results:
         image_path = result['image_path']
         if os.path.exists(image_path):
             images.append(image_path)
             captions.append(f"Rank {result['rank']} (Similarity: {result['similarity']:.3f})\n{result['caption']}")
+            detailed_results.append(f"**Rank {result['rank']}** (Similarity: {result['similarity']:.3f})\n📝 **Caption:** {result['caption']}\n🖼️ **Image:** {image_path}\n")
         else:
             # If image doesn't exist, create a placeholder
             images.append(None)
             captions.append(f"Rank {result['rank']} (Similarity: {result['similarity']:.3f})\n{result['caption']}\n❌ Image not found: {image_path}")
+            detailed_results.append(f"**Rank {result['rank']}** (Similarity: {result['similarity']:.3f})\n📝 **Caption:** {result['caption']}\n❌ **Image not found:** {image_path}\n")
     
-    return images, f"🔍 **Search Results for: '{query}'** - Found {len(images)} results"
+    # Combine all detailed results
+    detailed_text = f"🔍 **Search Results for: '{query}'** - Found {len(images)} results\n\n" + "\n".join(detailed_results)
+    
+    return images, detailed_text
 
 def search_image_to_text(image, top_k):
     """Gradio interface for image-to-text search"""
     if image is None:
-        return "Please upload an image."
+        return [], "Please upload an image."
     
     results = image_to_text_search(image, int(top_k))
     
     if not results:
-        return "No results found."
+        return [], "No results found."
     
-    # Format results
-    output = f"🔍 **Search Results for Uploaded Image**\n\n"
+    # Prepare images and captions for display
+    images = []
+    captions = []
+    detailed_results = []
+    
     for result in results:
-        output += f"**Rank {result['rank']}** (Similarity: {result['similarity']:.3f})\n"
-        output += f"📝 Caption: {result['caption']}\n"
-        output += f"🖼️ Image: {result['image_path']}\n\n"
+        image_path = result['image_path']
+        if os.path.exists(image_path):
+            images.append(image_path)
+            captions.append(f"Rank {result['rank']} (Similarity: {result['similarity']:.3f})\n{result['caption']}")
+            detailed_results.append(f"**Rank {result['rank']}** (Similarity: {result['similarity']:.3f})\n📝 **Caption:** {result['caption']}\n🖼️ **Image:** {image_path}\n")
+        else:
+            # If image doesn't exist, create a placeholder
+            images.append(None)
+            captions.append(f"Rank {result['rank']} (Similarity: {result['similarity']:.3f})\n{result['caption']}\n❌ Image not found: {image_path}")
+            detailed_results.append(f"**Rank {result['rank']}** (Similarity: {result['similarity']:.3f})\n📝 **Caption:** {result['caption']}\n❌ **Image not found:** {image_path}\n")
     
-    return output
+    # Combine all detailed results
+    detailed_text = f"🔍 **Search Results for Uploaded Image** - Found {len(images)} results\n\n" + "\n".join(detailed_results)
+    
+    return images, detailed_text
 
 # Create Gradio Interface
 def create_gradio_app():
@@ -222,11 +241,19 @@ def create_gradio_app():
                     
                     with gr.Column():
                         image_output = gr.Markdown(label="Search Results")
+                        image_gallery = gr.Gallery(
+                            label="Search Results",
+                            show_label=True,
+                            elem_id="gallery",
+                            columns=2,
+                            rows=2,
+                            height="auto"
+                        )
                 
                 image_search_btn.click(
                     fn=search_image_to_text,
                     inputs=[image_input, top_k_image],
-                    outputs=image_output
+                    outputs=[image_gallery, image_output]
                 )
         
         # Dataset Information
