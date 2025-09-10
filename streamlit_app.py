@@ -1,4 +1,3 @@
-
 import streamlit as st
 import torch
 import torchvision.transforms as transforms
@@ -8,417 +7,11 @@ import numpy as np
 import pandas as pd
 import os
 import json
+import io
 from datetime import datetime
 from sklearn.metrics.pairwise import cosine_similarity
 import warnings
 warnings.filterwarnings('ignore')
-
-# Custom CSS for ultra-modern styling
-def load_css():
-    st.markdown("""
-    <style>
-    /* Modern theme colors - 2024/2025 design trends */
-    :root {
-        --primary-color: #6366f1;
-        --secondary-color: #8b5cf6;
-        --accent-color: #06b6d4;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --error-color: #ef4444;
-        --info-color: #3b82f6;
-        --light-color: #f8fafc;
-        --dark-color: #0f172a;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
-        
-        /* Modern gradients */
-        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --gradient-modern: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
-        --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-        --gradient-dark: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        --gradient-card: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-        
-        /* Modern shadows */
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        
-        /* Modern border radius */
-        --radius-sm: 0.375rem;
-        --radius-md: 0.5rem;
-        --radius-lg: 0.75rem;
-        --radius-xl: 1rem;
-        --radius-2xl: 1.5rem;
-        --radius-full: 9999px;
-    }
-    
-    /* Global modern styles */
-    .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 2rem;
-        max-width: 1400px;
-    }
-    
-    /* Ultra-modern header with glassmorphism */
-    .main-header {
-        background: var(--gradient-modern);
-        padding: 3rem 2rem;
-        border-radius: var(--radius-2xl);
-        margin-bottom: 3rem;
-        text-align: center;
-        box-shadow: var(--shadow-2xl);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .main-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--gradient-glass);
-        backdrop-filter: blur(10px);
-        border-radius: var(--radius-2xl);
-    }
-    
-    .main-header h1 {
-        color: white;
-        font-size: 3.5rem;
-        font-weight: 800;
-        margin: 0;
-        text-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        position: relative;
-        z-index: 1;
-        letter-spacing: -0.02em;
-    }
-    
-    .main-header p {
-        color: rgba(255,255,255,0.95);
-        font-size: 1.3rem;
-        margin: 1rem 0 0 0;
-        position: relative;
-        z-index: 1;
-        font-weight: 500;
-    }
-    
-    /* Ultra-modern card styling with glassmorphism */
-    .search-card {
-        background: var(--gradient-card);
-        border-radius: var(--radius-2xl);
-        padding: 2.5rem;
-        margin: 1.5rem 0;
-        box-shadow: var(--shadow-xl);
-        border: 1px solid rgba(255,255,255,0.2);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(10px);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .search-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-modern);
-        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    }
-    
-    .search-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: var(--shadow-2xl);
-        border-color: rgba(99, 102, 241, 0.3);
-    }
-    
-    /* Ultra-modern button styling */
-    .stButton > button {
-        background: var(--gradient-modern);
-        color: white;
-        border: none;
-        border-radius: var(--radius-full);
-        padding: 0.75rem 2.5rem;
-        font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--shadow-lg);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .stButton > button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s;
-    }
-    
-    .stButton > button:hover::before {
-        left: 100%;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: var(--shadow-2xl);
-    }
-    
-    .stButton > button:active {
-        transform: translateY(-1px) scale(1.02);
-    }
-    
-    /* Ultra-modern input styling */
-    .stTextInput > div > div > input {
-        border-radius: var(--radius-full);
-        border: 2px solid var(--gray-200);
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: var(--gradient-card);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), var(--shadow-lg);
-        transform: scale(1.02);
-    }
-    
-    /* Modern popular search buttons */
-    .popular-search-btn {
-        background: var(--gradient-modern);
-        color: white;
-        border: none;
-        border-radius: var(--radius-full);
-        padding: 0.6rem 1.5rem;
-        margin: 0.3rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--shadow-md);
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        display: inline-block;
-    }
-    
-    .popular-search-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.6s;
-    }
-    
-    .popular-search-btn:hover::before {
-        left: 100%;
-    }
-    
-    .popular-search-btn:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: var(--shadow-xl);
-    }
-    
-    .popular-search-btn:active {
-        transform: translateY(0) scale(1.02);
-    }
-    
-    /* Ultra-modern sidebar styling */
-    .css-1d391kg {
-        background: var(--gradient-card);
-    }
-    
-    .sidebar .sidebar-content {
-        background: var(--gradient-card);
-    }
-    
-    /* Modern metric cards with glassmorphism */
-    .metric-card {
-        background: var(--gradient-card);
-        border-radius: var(--radius-xl);
-        padding: 1.5rem;
-        margin: 0.75rem 0;
-        box-shadow: var(--shadow-lg);
-        border: 1px solid rgba(255,255,255,0.2);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--gradient-modern);
-        border-radius: var(--radius-xl) 0 0 var(--radius-xl);
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: var(--shadow-xl);
-    }
-    
-    /* Ultra-modern result cards */
-    .result-card {
-        background: var(--gradient-card);
-        border-radius: var(--radius-2xl);
-        padding: 2rem;
-        margin: 1.5rem 0;
-        box-shadow: var(--shadow-xl);
-        border: 1px solid rgba(255,255,255,0.2);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .result-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: var(--gradient-modern);
-        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    }
-    
-    .result-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: var(--shadow-2xl);
-        border-color: rgba(99, 102, 241, 0.3);
-    }
-    
-    /* Loading animation */
-    .loading-spinner {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid var(--primary-color);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    /* Tips section */
-    .tips-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin: 1rem 0;
-    }
-    
-    .tips-section h4 {
-        color: white;
-        margin-bottom: 1rem;
-    }
-    
-    /* Popular search buttons */
-    .popular-search {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 20px;
-        padding: 0.5rem 1rem;
-        margin: 0.25rem;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        display: inline-block;
-    }
-    
-    .popular-search:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    
-    /* Image styling */
-    .result-image {
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-    }
-    
-    .result-image:hover {
-        transform: scale(1.05);
-    }
-    
-    /* Success/Error messages */
-    .stSuccess {
-        background: linear-gradient(135deg, #2ca02c 0%, #28a745 100%);
-        color: white;
-        border-radius: 10px;
-        padding: 1rem;
-        border: none;
-    }
-    
-    .stError {
-        background: linear-gradient(135deg, #d62728 0%, #dc3545 100%);
-        color: white;
-        border-radius: 10px;
-        padding: 1rem;
-        border: none;
-    }
-    
-    .stWarning {
-        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
-        color: #212529;
-        border-radius: 10px;
-        padding: 1rem;
-        border: none;
-    }
-    
-    /* Hide default Streamlit elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: var(--gradient);
-        border-radius: 10px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -432,33 +25,19 @@ def load_clip_model():
     return model, processor
 
 # Load embeddings data
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data
 def load_embeddings_data():
     """Load pre-computed embeddings and metadata"""
     # Load embeddings
     image_embeddings = np.load('embeddings/image_embeddings.npy')
     text_embeddings = np.load('embeddings/text_embeddings.npy')
-    
+
     # Load metadata
     metadata = pd.read_csv('embeddings/metadata.csv')
-    
-    # Load model info with error handling
-    try:
-        with open('embeddings/model_info.json', 'r') as f:
-            model_info = json.load(f)
-    except Exception as e:
-        st.error(f"Error loading model info: {e}")
-        # Fallback values
-        model_info = {
-            "model_name": "openai/clip-vit-base-patch32",
-            "embedding_dim": 512,
-            "num_images": 8091,
-            "total_embeddings": 8091,
-            "num_samples": 8091,
-            "dataset": "Flickr8k",
-            "processing_date": "2025-01-10",
-            "device_used": "cpu"
-        }
+
+    # Load model info
+    with open('embeddings/model_info.json', 'r') as f:
+        model_info = json.load(f)
 
     return image_embeddings, text_embeddings, metadata, model_info
 
@@ -522,56 +101,576 @@ def image_to_text_search(uploaded_image, top_k=5):
 
     return results
 
+# Custom CSS for modern UI
+def load_css():
+    st.markdown("""
+    <style>
+    /* Modern theme colors - Clean & Minimal */
+    :root {
+        --primary-color: #2563eb;
+        --primary-light: #3b82f6;
+        --primary-dark: #1d4ed8;
+        --secondary-color: #7c3aed;
+        --accent-color: #06b6d4;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --error-color: #dc2626;
+        --dark-color: #111827;
+        --dark-light: #374151;
+        --light-color: #ffffff;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --gradient-primary: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #7c3aed 100%);
+        --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+        --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --border-radius: 8px;
+        --border-radius-md: 12px;
+        --border-radius-lg: 16px;
+        --border-radius-xl: 20px;
+        --border-radius-2xl: 24px;
+    }
+
+    /* Reset and base styles */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* Main container */
+    .main .block-container {
+        padding: 2rem 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--gray-50);
+        min-height: 100vh;
+    }
+
+    /* Header styling - Clean & Modern */
+    .main-header {
+        background: var(--light-color);
+        padding: 3rem 2rem;
+        border-radius: var(--border-radius-2xl);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+        color: var(--dark-color);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+    }
+
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+    }
+
+    .main-header h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dark-color);
+        position: relative;
+        z-index: 1;
+        letter-spacing: -0.025em;
+    }
+
+    .main-header p {
+        font-size: 1.125rem;
+        margin: 1rem 0 0 0;
+        color: var(--gray-600);
+        position: relative;
+        z-index: 1;
+        font-weight: 400;
+    }
+
+    /* Hero section - Clean stats */
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        position: relative;
+        z-index: 1;
+        flex-wrap: wrap;
+    }
+
+    .hero-stat {
+        text-align: center;
+        background: var(--gray-50);
+        padding: 1.5rem 1.25rem;
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--gray-200);
+        min-width: 120px;
+        transition: all 0.2s ease;
+    }
+
+    .hero-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .hero-stat .number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        display: block;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .hero-stat .label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* Sidebar styling - Clean & Minimal */
+    .css-1d391kg {
+        background: var(--light-color);
+        border-right: 1px solid var(--gray-200);
+    }
+
+    .sidebar .sidebar-content {
+        background: var(--light-color);
+        padding: 1.5rem 1rem;
+    }
+
+    .sidebar .sidebar-content .element-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .sidebar h3 {
+        color: var(--dark-color);
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--gray-200);
+        letter-spacing: 0.025em;
+    }
+
+    /* Card styling - Clean & Modern */
+    .metric-card {
+        background: var(--light-color);
+        padding: 1.25rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--gradient-primary);
+    }
+
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .metric-card h3 {
+        color: var(--gray-600);
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .metric-card .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+    }
+
+    /* Search card - Clean & Modern */
+    .search-card {
+        background: var(--light-color);
+        border-radius: var(--border-radius-xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .search-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--gradient-primary);
+    }
+
+    /* Results grid */
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    /* Button styling - Clean & Modern */
+    .stButton > button {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stButton > button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stButton > button:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Primary button variant */
+    .stButton > button[kind="primary"] {
+        background: var(--primary-color);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        background: var(--primary-dark);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Search input styling - Clean & Modern */
+    .stTextInput > div > div > input {
+        border-radius: var(--border-radius-md);
+        border: 1px solid var(--gray-300);
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        font-weight: 400;
+        transition: all 0.2s ease;
+        background: var(--light-color);
+        box-shadow: var(--shadow-xs);
+    }
+
+    .stTextInput > div > div > input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), var(--shadow-xs);
+        background: var(--light-color);
+        outline: none;
+    }
+
+    .stTextInput > div > div > input::placeholder {
+        color: var(--gray-400);
+        font-weight: 400;
+    }
+
+    /* Popular search buttons - Clean & Modern */
+    .popular-search-btn {
+        background: var(--light-color);
+        border: 1px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        padding: 0.5rem 0.875rem;
+        margin: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-block;
+        text-decoration: none;
+        color: var(--gray-700);
+        box-shadow: var(--shadow-xs);
+    }
+
+    .popular-search-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Results styling - Clean & Modern */
+    .result-card {
+        background: var(--light-color);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: all 0.2s ease;
+        border: 1px solid var(--gray-200);
+    }
+
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .result-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .result-card .content {
+        padding: 1rem;
+    }
+
+    .result-card .similarity {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius);
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    .result-card .caption {
+        color: var(--gray-700);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Status messages - Clean & Modern */
+    .stSuccess {
+        background: var(--success-color);
+        color: white;
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        border: none;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stError {
+        background: var(--error-color);
+        color: white;
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        border: none;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stWarning {
+        background: var(--warning-color);
+        color: white;
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        border: none;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Tabs styling - Clean & Modern */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.25rem;
+        background: var(--gray-100);
+        padding: 0.25rem;
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 2rem;
+        border: 1px solid var(--gray-200);
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        border-radius: var(--border-radius-md);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        color: var(--gray-600);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stTabs [data-baseweb="tab"]:hover {
+        background: var(--gray-200);
+        color: var(--primary-color);
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: var(--primary-color);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Slider styling - Clean & Modern */
+    .stSlider > div > div > div > div {
+        background: var(--primary-color);
+    }
+
+    /* File uploader styling - Clean & Modern */
+    .stFileUploader > div > div > div {
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        background: var(--gray-50);
+    }
+
+    .stFileUploader > div > div > div:hover {
+        border-color: var(--primary-color);
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    /* Responsive design - Clean & Modern */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding: 1rem 0.5rem;
+        }
+        
+        .main-header {
+            padding: 2rem 1rem;
+        }
+        
+        .main-header h1 {
+            font-size: 2rem;
+        }
+        
+        .main-header p {
+            font-size: 1rem;
+        }
+        
+        .hero-stats {
+            gap: 1rem;
+        }
+        
+        .hero-stat {
+            min-width: 100px;
+            padding: 1rem 0.75rem;
+        }
+        
+        .hero-stat .number {
+            font-size: 1.5rem;
+        }
+        
+        .hero-stat .label {
+            font-size: 0.75rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .hero-stats {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .hero-stat {
+            width: 100%;
+            max-width: 200px;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Main Streamlit app
 def main():
     st.set_page_config(
-        page_title="🔍 AI Search Engine",
+        page_title="🔍 Multimodal Search Engine",
         page_icon="🔍",
         layout="wide",
         initial_sidebar_state="expanded"
     )
-    
+
+    # Clear cache if needed (for debugging)
+    if st.sidebar.button("🗑️ Clear Cache"):
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.rerun()
+
     # Load custom CSS
     load_css()
-    
-    # Professional header
+
+    # Modern header with hero stats
     st.markdown("""
     <div class="main-header">
-        <h1>🔍 AI Search Engine</h1>
-        <p>Powered by OpenAI CLIP • Multimodal Image & Text Search</p>
+        <h1>🔍 Multimodal Search Engine</h1>
+        <p>Powered by OpenAI CLIP • Find images with text or text with images</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="number">""" + str(model_info.get('num_images', 'Unknown')) + """</span>
+                <span class="label">Images</span>
+            </div>
+            <div class="hero-stat">
+                <span class="number">""" + str(model_info.get('embedding_dim', 'Unknown')) + """D</span>
+                <span class="label">Embeddings</span>
+            </div>
+            <div class="hero-stat">
+                <span class="number">""" + str(model_info.get('dataset', 'Unknown')) + """</span>
+                <span class="label">Dataset</span>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar with enhanced styling
-    st.sidebar.markdown("""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 1.5rem; border-radius: 15px; margin-bottom: 1rem;">
-        <h2 style="color: white; margin: 0; text-align: center;">⚙️ Search Options</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Search type selection with better styling
-    st.sidebar.markdown("### 🔍 Search Type")
-    search_type = st.sidebar.radio(
-        "Choose your search method:",
+    # Modern sidebar
+    st.sidebar.markdown("### ⚙️ Search Configuration")
+    
+    # Search type selection with modern styling
+    search_type = st.sidebar.selectbox(
+        "🔍 Search Type",
         ["Text-to-Image Search", "Image-to-Text Search"],
-        help="Select how you want to search through the dataset"
+        help="Choose how you want to search"
     )
 
-    # Number of results with enhanced slider
+    # Number of results with modern slider
     st.sidebar.markdown("### 📊 Results")
     top_k = st.sidebar.slider(
-        "Number of results to display:",
+        "Number of results",
         min_value=1,
         max_value=20,
         value=5,
-        help="Adjust the number of top results you want to see"
+        help="Number of top results to display"
     )
 
-    # Ultra-modern popular searches section
-    st.sidebar.markdown("---")
+    # Popular searches with modern grid
     st.sidebar.markdown("### 🔥 Popular Searches")
-    st.sidebar.markdown("*Click any search to try it instantly*")
+    st.sidebar.markdown("*Click any suggestion to search instantly*")
 
     popular_searches = [
         "dog playing", "children smiling", "red car", "food cooking",
@@ -579,80 +678,70 @@ def main():
         "house building", "tree nature", "person walking", "animal pet"
     ]
 
-    # Create modern popular search buttons with custom styling
-    st.sidebar.markdown("""
-    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0;">
-    """, unsafe_allow_html=True)
-    
+    # Create a grid of popular search buttons
+    cols = st.sidebar.columns(2)
     for i, search in enumerate(popular_searches):
-        if st.sidebar.button(f"🔍 {search}", key=f"popular_{i}", help=f"Search for: {search}"):
-            st.session_state.popular_search = search
-            st.session_state.auto_search = True
-    
-    st.sidebar.markdown("</div>", unsafe_allow_html=True)
+        with cols[i % 2]:
+            if st.button(f"🔍 {search}", key=f"popular_{i}", help=f"Search for '{search}'"):
+                st.session_state.popular_search = search
+                st.session_state.auto_search = True
 
-    # Display dataset info with enhanced styling
-    st.sidebar.markdown("---")
+    # Dataset information with modern cards
     st.sidebar.markdown("### 📊 Dataset Information")
     
-    # Get values and format properly with better fallbacks
-    num_images = model_info.get('num_images', len(metadata) if len(metadata) > 0 else 'Unknown')
-    num_embeddings = model_info.get('total_embeddings', model_info.get('num_samples', len(metadata) if len(metadata) > 0 else 'Unknown'))
-    embedding_dim = model_info.get('embedding_dim', 512)
-    model_name = model_info.get('model_name', 'openai/clip-vit-base-patch32')
-    dataset = model_info.get('dataset', 'Flickr8k')
-    processing_date = model_info.get('processing_date', '2025-01-10')
+    # Get values and format properly
+    num_images = model_info.get('num_images', 'Unknown')
+    num_embeddings = model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown'))
+    embedding_dim = model_info.get('embedding_dim', 'Unknown')
+    model_name = model_info.get('model_name', 'Unknown')
+    dataset = model_info.get('dataset', 'Unknown')
+    processing_date = model_info.get('processing_date', datetime.now().strftime('%Y-%m-%d'))
 
     # Format numbers properly
     images_text = f"{num_images:,}" if isinstance(num_images, int) else str(num_images)
     embeddings_text = f"{num_embeddings:,}" if isinstance(num_embeddings, int) else str(num_embeddings)
     model_display = model_name.split('/')[-1] if '/' in model_name else model_name
-    
-    # Add cache clearing button
-    if st.sidebar.button("🔄 Refresh Data", help="Clear cache and reload data"):
-        st.cache_data.clear()
-        st.rerun()
 
-    # Create metric cards with custom styling
+    # Display metrics in modern cards
     st.sidebar.markdown(f"""
     <div class="metric-card">
-        <strong>📸 Total Images</strong><br>
-        <span style="font-size: 1.5rem; color: #667eea;">{images_text}</span>
+        <h3>📸 Total Images</h3>
+        <div class="value">{images_text}</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown(f"""
     <div class="metric-card">
-        <strong>🧠 Total Embeddings</strong><br>
-        <span style="font-size: 1.5rem; color: #667eea;">{embeddings_text}</span>
+        <h3>🔢 Total Embeddings</h3>
+        <div class="value">{embeddings_text}</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown(f"""
     <div class="metric-card">
-        <strong>📐 Embedding Dimension</strong><br>
-        <span style="font-size: 1.5rem; color: #667eea;">{embedding_dim}D</span>
+        <h3>📐 Embedding Dimension</h3>
+        <div class="value">{embedding_dim}D</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown(f"""
     <div class="metric-card">
-        <strong>🤖 Model</strong><br>
-        <span style="font-size: 1rem; color: #667eea;">{model_display}</span>
+        <h3>🤖 Model</h3>
+        <div class="value">{model_display}</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown(f"""
     <div class="metric-card">
-        <strong>📁 Dataset</strong><br>
-        <span style="font-size: 1rem; color: #667eea;">{dataset}</span>
+        <h3>📁 Dataset</h3>
+        <div class="value">{dataset}</div>
     </div>
     """, unsafe_allow_html=True)
     
     st.sidebar.markdown(f"""
     <div class="metric-card">
-        <strong>📅 Processing Date</strong><br>
-        <span style="font-size: 1rem; color: #667eea;">{processing_date}</span>
+        <h3>📅 Processing Date</h3>
+        <div class="value">{processing_date}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -661,90 +750,73 @@ def main():
     if isinstance(num_images, int) and num_images < 1000:
         st.warning(f"⚠️ **Demo Mode**: You're using a small subset ({num_images:,} images) of the full Flickr8k dataset. For production use, run the full dataset processing in Part 1 to get all 8,091 images.")
 
-    # Main content area with enhanced styling
-    if search_type == "Text-to-Image Search":
+    # Main content area with modern tabs
+    tab1, tab2 = st.tabs(["🔤 Text-to-Image Search", "🖼️ Image-to-Text Search"])
+    
+    # Add clarification about the tabs
+    st.info("💡 **Tip**: Use the **Text-to-Image** tab to search for images using text descriptions. Use the **Image-to-Text** tab to upload an image and find similar text descriptions.")
+    
+    with tab1:
         st.markdown("""
         <div class="search-card">
-            <h2 style="color: #667eea; margin-bottom: 1rem;">🔤 Text-to-Image Search</h2>
-            <p style="font-size: 1.1rem; color: #666; margin-bottom: 2rem;">Enter a text description to find similar images using AI-powered semantic search</p>
+            <h2 style="margin: 0 0 1rem 0; color: var(--dark-color); font-size: 1.5rem; font-weight: 700;">🔤 Text-to-Image Search</h2>
+            <p style="margin: 0 0 2rem 0; color: var(--gray-600); font-size: 1rem;">Describe what you're looking for and discover relevant images from the dataset</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # Ultra-modern search tips section with glassmorphism
-        st.markdown("""
-        <div style="background: var(--gradient-modern); 
-                    padding: 2.5rem; 
-                    border-radius: var(--radius-2xl); 
-                    margin: 2rem 0;
-                    box-shadow: var(--shadow-2xl);
-                    position: relative;
-                    overflow: hidden;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-                        background: var(--gradient-glass); 
-                        backdrop-filter: blur(20px);
-                        border-radius: var(--radius-2xl);"></div>
-            <div style="position: relative; z-index: 1;">
-                <h4 style="color: white; margin-bottom: 2rem; font-size: 1.5rem; font-weight: 700;">💡 Search Tips & Examples</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
-                    <div style="background: rgba(255,255,255,0.1); 
-                                padding: 1.5rem; 
-                                border-radius: var(--radius-xl);
-                                backdrop-filter: blur(10px);
-                                border: 1px solid rgba(255,255,255,0.2);">
-                        <strong style="color: white; font-size: 1.1rem;">🎯 Try searching for:</strong><br><br>
-                        <div style="color: rgba(255,255,255,0.9); line-height: 1.8;">
-                            • <strong>Animals:</strong> 'dog', 'cat', 'bird'<br>
-                            • <strong>Activities:</strong> 'playing', 'running', 'cooking'<br>
-                            • <strong>Objects:</strong> 'car', 'house', 'food'<br>
-                            • <strong>Emotions:</strong> 'smiling', 'happy', 'sad'
-                        </div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.1); 
-                                padding: 1.5rem; 
-                                border-radius: var(--radius-xl);
-                                backdrop-filter: blur(10px);
-                                border: 1px solid rgba(255,255,255,0.2);">
-                        <strong style="color: white; font-size: 1.1rem;">🚀 Quick Examples:</strong><br><br>
-                        <div style="color: rgba(255,255,255,0.9); line-height: 1.8;">
-                            Click any example below to search instantly!<br>
-                            The AI will find the most relevant images.
-                        </div>
-                    </div>
+        # Search suggestions with modern cards
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.markdown("""
+            <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius-lg); border-left: 3px solid var(--primary-color); margin-bottom: 1rem;">
+                <h4 style="margin: 0 0 1rem 0; color: var(--dark-color); font-size: 1rem; font-weight: 600;">💡 Search Tips</h4>
+                <div style="color: var(--gray-600); line-height: 1.6; font-size: 0.875rem;">
+                    <strong>Try searching for:</strong><br>
+                    • <strong>Animals:</strong> 'dog', 'cat', 'bird', 'horse'<br>
+                    • <strong>Activities:</strong> 'playing', 'running', 'cooking'<br>
+                    • <strong>Objects:</strong> 'car', 'house', 'food'<br>
+                    • <strong>Emotions:</strong> 'smiling', 'happy', 'sad'<br>
+                    • <strong>Scenes:</strong> 'beach', 'park', 'kitchen'
                 </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("""
+            <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--border-radius-lg); border-left: 3px solid var(--success-color); margin-bottom: 1rem;">
+                <h4 style="margin: 0 0 1rem 0; color: var(--dark-color); font-size: 1rem; font-weight: 600;">🎯 Quick Examples</h4>
+                <div style="color: var(--gray-600); line-height: 1.6; font-size: 0.875rem;">
+                    Click any example to search instantly:
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Example buttons in a grid
+            example_cols = st.columns(2)
+            with example_cols[0]:
+                if st.button("🐕 A dog playing", key="example1", help="Search for 'a dog playing'"):
+                    st.session_state.example_query = "a dog playing"
+                    st.session_state.auto_search = True
+                if st.button("👶 Children smiling", key="example2", help="Search for 'children smiling'"):
+                    st.session_state.example_query = "children smiling"
+                    st.session_state.auto_search = True
+            
+            with example_cols[1]:
+                if st.button("🚗 Red car", key="example3", help="Search for 'red car'"):
+                    st.session_state.example_query = "red car"
+                    st.session_state.auto_search = True
+                if st.button("🍕 Food cooking", key="example4", help="Search for 'food cooking'"):
+                    st.session_state.example_query = "food cooking"
+                    st.session_state.auto_search = True
 
-        # Ultra-modern example query buttons
-        st.markdown("### 🚀 Quick Search Examples")
-        st.markdown("""
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-                    gap: 1rem; margin: 2rem 0;">
-        """, unsafe_allow_html=True)
-        
-        examples = [
-            ("🐕 A dog playing", "Search for dogs playing", "a dog playing"),
-            ("👶 Children smiling", "Search for smiling children", "children smiling"),
-            ("🚗 Red car", "Search for red cars", "red car"),
-            ("🍕 Food cooking", "Search for cooking food", "food cooking")
-        ]
-        
-        for i, (text, help_text, query) in enumerate(examples):
-            if st.button(text, key=f"example{i+1}", help=help_text):
-                st.session_state.example_query = query
-                st.session_state.auto_search = True
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Enhanced text input section
-        st.markdown("### 🔍 Search Query")
+        # Text input with better placeholder
         query_text = st.text_input(
-            "Enter your search description:",
+            "🔍 Enter your search query:",
             placeholder="Describe what you're looking for... (e.g., 'a dog playing in the park', 'children smiling', 'red car on street')",
             help="💡 Be specific! Try describing objects, actions, colors, or emotions. The more descriptive, the better the results!",
             value=st.session_state.get('example_query', st.session_state.get('popular_search', '')),
-            key="search_input",
-            label_visibility="collapsed"
+            key="search_input"
         )
 
         # Clear example queries after use
@@ -760,116 +832,209 @@ def main():
             # Use example query if available, otherwise use popular search
             query_text = st.session_state.get('example_query', st.session_state.get('popular_search', query_text))
 
-        # Enhanced search button
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("🔍 Search Images", type="primary", use_container_width=True) or should_search:
-                if query_text:
-                    with st.spinner("🔍 Searching for images..."):
-                        results = text_to_image_search(query_text, top_k)
+        if st.button("🔍 Search Images", type="primary") or should_search:
+            if query_text:
+                with st.spinner("Searching for images..."):
+                    results = text_to_image_search(query_text, top_k)
 
-                    if results:
-                        st.success(f"✅ Found {len(results)} results for: '{query_text}'")
+                if results:
+                    st.success(f"Found {len(results)} results for: '{query_text}'")
 
-                        # Display results with enhanced styling
-                        st.markdown("### 🖼️ Search Results")
-                        
-                        # Display results in columns
-                        cols = st.columns(min(3, len(results)))
-                        for i, result in enumerate(results):
-                            with cols[i % 3]:
-                                try:
-                                    image_path = result['image_path']
-                                    # Fix path - remove ../ if present
-                                    if image_path.startswith('../'):
-                                        image_path = image_path[3:]  # Remove ../
+                    # Display results in columns
+                    cols = st.columns(min(3, len(results)))
+                    for i, result in enumerate(results):
+                        with cols[i % 3]:
+                            try:
+                                image_path = result['image_path']
+                                # Fix path - remove ../ if present
+                                if image_path.startswith('../'):
+                                    image_path = image_path[3:]  # Remove ../
 
-                                    if os.path.exists(image_path):
-                                        image = Image.open(image_path)
-                                        
-                                        # Create result card with Streamlit components
-                                        st.markdown(f"""
-                                        <div class="result-card">
-                                            <div style="text-align: center; padding: 1rem;">
-                                                <h4 style="color: #667eea; margin: 0.5rem 0;">Similarity: {result['similarity']:.3f}</h4>
-                                                <p style="color: #666; font-size: 0.9rem; margin: 0.25rem 0;">
-                                                    <strong>ID:</strong> {result['image_id']}
-                                                </p>
-                                                <p style="color: #333; font-size: 0.95rem; margin: 0.5rem 0;">
-                                                    {result['caption']}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        """, unsafe_allow_html=True)
-                                        
-                                        # Display image using Streamlit
-                                        st.image(image, caption=f"Similarity: {result['similarity']:.3f}", use_container_width=True)
-                                    else:
-                                        st.error(f"Image not found: {image_path}")
-                                except Exception as e:
-                                    st.error(f"Error loading image: {e}")
+                                if os.path.exists(image_path):
+                                    image = Image.open(image_path)
+                                    st.image(image, caption=f"Similarity: {result['similarity']:.3f}", use_container_width=True)
+
+                                    # Display details
+                                    st.markdown(f"**Image ID:** {result['image_id']}")
+                                    st.markdown(f"**Caption:** {result['caption']}")
+                                    st.markdown(f"**Similarity:** {result['similarity']:.3f}")
+                                else:
+                                    st.error(f"Image not found: {image_path}")
+                            except Exception as e:
+                                st.error(f"Error loading image: {e}")
                     else:
-                        st.warning("⚠️ No results found. Try a different search query.")
-                else:
-                    st.warning("⚠️ Please enter a search query.")
+                        st.warning("No results found. Try a different search query.")
+            else:
+                st.warning("Please enter a search query.")
 
-    else:  # Image-to-Text Search
+    with tab2:
         st.markdown("""
         <div class="search-card">
-            <h2 style="color: #667eea; margin-bottom: 1rem;">🖼️ Image-to-Text Search</h2>
-            <p style="font-size: 1.1rem; color: #666; margin-bottom: 2rem;">Upload an image to find similar text descriptions using AI-powered visual understanding</p>
+            <h2 style="margin: 0 0 1rem 0; color: var(--dark-color); font-size: 1.5rem; font-weight: 700;">🖼️ Image-to-Text Search</h2>
+            <p style="margin: 0 0 2rem 0; color: var(--gray-600); font-size: 1rem;">Upload an image to find similar text descriptions from the dataset</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # Enhanced upload guidance
-        st.markdown("""
-        <div class="tips-section">
-            <h4>📋 Upload Guidelines</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <div>
-                    <strong>📁 Supported formats:</strong><br>
+        # Upload guidance
+        st.markdown("#### 📋 Upload Guidelines")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            <div style="background: var(--gray-50); padding: 1.25rem; border-radius: var(--border-radius-lg); border-left: 3px solid var(--primary-color);">
+                <h4 style="margin: 0 0 0.75rem 0; color: var(--dark-color); font-size: 0.875rem; font-weight: 600;">Supported formats:</h4>
+                <div style="color: var(--gray-600); font-size: 0.875rem; line-height: 1.5;">
                     • JPG, JPEG<br>
                     • PNG<br>
                     • BMP, GIF
                 </div>
-                <div>
-                    <strong>🎯 Best results with:</strong><br>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("""
+            <div style="background: var(--gray-50); padding: 1.25rem; border-radius: var(--border-radius-lg); border-left: 3px solid var(--success-color);">
+                <h4 style="margin: 0 0 0.75rem 0; color: var(--dark-color); font-size: 0.875rem; font-weight: 600;">Best results with:</h4>
+                <div style="color: var(--gray-600); font-size: 0.875rem; line-height: 1.5;">
                     • Clear, well-lit images<br>
                     • Single main subject<br>
                     • Good contrast
                 </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-        # Enhanced image upload section
-        st.markdown("### 📁 Upload Image")
+        # Image upload
         uploaded_file = st.file_uploader(
-            "Choose an image file:",
+            "📁 Choose an image file:",
             type=['jpg', 'jpeg', 'png', 'bmp', 'gif'],
             help="💡 Upload a clear image with a main subject for best search results!",
             label_visibility="collapsed"
         )
+        
+        # Add some guidance
+        if not uploaded_file:
+            st.info("👆 **Upload an image above** to find similar text descriptions from the dataset")
 
         if uploaded_file is not None:
-            # Display uploaded image with styling
-            uploaded_image = Image.open(uploaded_file)
-            st.markdown("### 📸 Your Uploaded Image")
-            st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
+            try:
+                # Debug information
+                st.write(f"📁 File name: {uploaded_file.name}")
+                st.write(f"📏 File size: {uploaded_file.size} bytes")
+                st.write(f"🔍 File type: {uploaded_file.type}")
+                
+                # Reset file pointer to beginning
+                uploaded_file.seek(0)
+                
+                # Try using BytesIO with proper handling
+                file_bytes = uploaded_file.read()
+                st.write(f"📊 File bytes length: {len(file_bytes)}")
+                
+                # Check if file has content
+                if len(file_bytes) == 0:
+                    st.error("❌ File is empty!")
+                    return
+                
+                # Try to create image from bytes using a more robust approach
+                try:
+                    # Create BytesIO object
+                    image_io = io.BytesIO(file_bytes)
+                    image_io.seek(0)
+                    
+                    # Try to determine format from file extension
+                    file_extension = os.path.splitext(uploaded_file.name)[1].lower()
+                    st.write(f"🔍 Detected file extension: {file_extension}")
+                    
+                    # Try to open with PIL - let it auto-detect the format
+                    uploaded_image = Image.open(image_io)
+                    
+                    # Load the image data
+                    uploaded_image.load()
+                    
+                    # Convert to RGB if necessary
+                    if uploaded_image.mode != 'RGB':
+                        uploaded_image = uploaded_image.convert('RGB')
+                    
+                    st.success("✅ Image loaded successfully!")
+                    
+                except Exception as img_error:
+                    st.error(f"❌ Error loading image: {str(img_error)}")
+                    
+                    # Try alternative approach - save to temporary file
+                    st.write("🔄 Trying temporary file approach...")
+                    
+                    try:
+                        import tempfile
+                        
+                        # Create temporary file with proper extension
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+                            tmp_file.write(file_bytes)
+                            tmp_file_path = tmp_file.name
+                        
+                        st.write(f"📁 Created temp file: {tmp_file_path}")
+                        
+                        # Load from temporary file
+                        uploaded_image = Image.open(tmp_file_path)
+                        uploaded_image.load()
+                        
+                        # Convert to RGB if necessary
+                        if uploaded_image.mode != 'RGB':
+                            uploaded_image = uploaded_image.convert('RGB')
+                        
+                        # Clean up temporary file
+                        os.unlink(tmp_file_path)
+                        
+                        st.success("✅ Image loaded with temporary file method!")
+                        
+                    except Exception as temp_error:
+                        st.error(f"❌ Temporary file method failed: {str(temp_error)}")
+                        
+                        # Final fallback - try with cv2 if available
+                        st.write("🔄 Trying OpenCV fallback...")
+                        try:
+                            import cv2
+                            import numpy as np
+                            
+                            # Convert bytes to numpy array
+                            nparr = np.frombuffer(file_bytes, np.uint8)
+                            
+                            # Decode image with OpenCV
+                            cv_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                            
+                            if cv_image is not None:
+                                # Convert BGR to RGB
+                                cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+                                
+                                # Convert to PIL Image
+                                uploaded_image = Image.fromarray(cv_image)
+                                
+                                st.success("✅ Image loaded with OpenCV fallback!")
+                            else:
+                                raise Exception("OpenCV could not decode the image")
+                                
+                        except ImportError:
+                            st.error("❌ OpenCV not available for fallback")
+                            st.warning("The uploaded file might be corrupted or in an unsupported format.")
+                            return
+                        except Exception as cv_error:
+                            st.error(f"❌ OpenCV fallback failed: {str(cv_error)}")
+                            st.warning("The uploaded file might be corrupted or in an unsupported format.")
+                            return
+                
+                # Display the image
+                st.image(uploaded_image, caption="Uploaded Image", use_container_width=True)
 
-            # Enhanced search button
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                if st.button("🔍 Search Descriptions", type="primary", use_container_width=True):
-                    with st.spinner("🔍 Searching for similar descriptions..."):
-                        results = image_to_text_search(uploaded_image, top_k)
+                if st.button("🔍 Search Descriptions", type="primary"):
+                    with st.spinner("Searching for similar descriptions..."):
+                        try:
+                            # Use the image we already loaded
+                            results = image_to_text_search(uploaded_image, top_k)
+                        except Exception as search_error:
+                            st.error(f"❌ Error during search: {str(search_error)}")
+                            results = []
 
                     if results:
-                        st.success(f"✅ Found {len(results)} similar descriptions")
+                        st.success(f"Found {len(results)} similar descriptions")
 
-                        # Display results with enhanced styling
-                        st.markdown("### 📝 Similar Descriptions")
-                        
                         # Display results in columns
                         cols = st.columns(min(3, len(results)))
                         for i, result in enumerate(results):
@@ -882,30 +1047,23 @@ def main():
 
                                     if os.path.exists(image_path):
                                         original_image = Image.open(image_path)
-                                        
-                                        # Create result card
-                                        st.markdown(f"""
-                                        <div class="result-card">
-                                            <div style="text-align: center; padding: 1rem;">
-                                                <h4 style="color: #667eea; margin: 0.5rem 0;">Similarity: {result['similarity']:.3f}</h4>
-                                                <p style="color: #666; font-size: 0.9rem; margin: 0.25rem 0;">
-                                                    <strong>ID:</strong> {result['image_id']}
-                                                </p>
-                                                <p style="color: #333; font-size: 0.95rem; margin: 0.5rem 0;">
-                                                    {result['caption']}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        """, unsafe_allow_html=True)
-                                        
-                                        # Display original image
                                         st.image(original_image, caption="Original Image", use_container_width=True)
                                     else:
                                         st.error(f"Original image not found: {image_path}")
                                 except Exception as e:
                                     st.error(f"Error loading original image: {e}")
+
+                                # Display details
+                                st.markdown(f"**Image ID:** {result['image_id']}")
+                                st.markdown(f"**Caption:** {result['caption']}")
+                                st.markdown(f"**Similarity:** {result['similarity']:.3f}")
                     else:
-                        st.warning("⚠️ No results found. Try a different image.")
+                        st.warning("No results found. Try a different image.")
+                        
+            except Exception as e:
+                st.error(f"❌ Error loading image: {str(e)}")
+                st.warning("Please make sure you're uploading a valid image file (JPG, PNG, BMP, GIF)")
+                uploaded_file = None
 
 if __name__ == "__main__":
     main()
