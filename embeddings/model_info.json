@@ -1,10 +1,10 @@
 {
-  "model_name": "openai/clip-vit-base-patch32",
+  "model_name": "HuggingFace/clip-vit-base-patch32",
   "embedding_dim": 512,
-  "num_samples": 500,
   "num_images": 8091,
-  "total_embeddings": 500,
-  "device_used": "cpu",
-  "processing_date": "2025-09-10",
-  "dataset": "Flickr8k"
+  "total_embeddings": 8091,
+  "num_samples": 8091,
+  "dataset": "Flickr8k",
+  "processing_date": "2025-01-10",
+  "device_used": "cpu"
 }

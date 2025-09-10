@@ -16,7 +16,6 @@ warnings.filterwarnings('ignore')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load CLIP model
-@gr.cache()
 def load_clip_model():
     """Load CLIP model and processor"""
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
@@ -24,18 +23,17 @@ def load_clip_model():
     return model, processor
 
 # Load embeddings data
-@gr.cache()
 def load_embeddings_data():
     """Load pre-computed embeddings and metadata"""
     # Load embeddings
-    image_embeddings = np.load('../embeddings/image_embeddings.npy')
-    text_embeddings = np.load('../embeddings/text_embeddings.npy')
+    image_embeddings = np.load('embeddings/image_embeddings.npy')
+    text_embeddings = np.load('embeddings/text_embeddings.npy')
 
     # Load metadata
-    metadata = pd.read_csv('../embeddings/metadata.csv')
+    metadata = pd.read_csv('embeddings/metadata.csv')
 
     # Load model info
-    with open('../embeddings/model_info.json', 'r') as f:
+    with open('embeddings/model_info.json', 'r') as f:
         model_info = json.load(f)
 
     return image_embeddings, text_embeddings, metadata, model_info
@@ -113,8 +111,7 @@ def search_images(query, num_results):
             return [], "No results found. Try a different search query."
 
         # Prepare images and captions for display
-        images = []
-        captions = []
+        gallery_data = []
 
         for result in results:
             image_path = result['image_path']
@@ -123,13 +120,12 @@ def search_images(query, num_results):
                 image_path = image_path[3:]  # Remove ../
 
             if os.path.exists(image_path):
-                images.append(image_path)
-                captions.append(f"Similarity: {result['similarity']:.3f}\nCaption: {result['caption']}")
+                caption = f"📊 Similarity: {result['similarity']:.3f}\n📝 {result['caption']}"
+                gallery_data.append((image_path, caption))
             else:
-                images.append(None)
-                captions.append(f"Image not found: {image_path}")
+                gallery_data.append((None, f"Image not found: {image_path}"))
 
-        return images, f"Found {len(results)} results for: '{query}'"
+        return gallery_data, f"Found {len(results)} results for: '{query}'"
 
     except Exception as e:
         return [], f"Error during search: {str(e)}"
@@ -147,8 +143,7 @@ def search_descriptions(image, num_results):
             return [], "No results found. Try a different image."
 
         # Prepare images and captions for display
-        images = []
-        captions = []
+        gallery_data = []
 
         for result in results:
             image_path = result['image_path']
@@ -157,13 +152,12 @@ def search_descriptions(image, num_results):
                 image_path = image_path[3:]  # Remove ../
 
             if os.path.exists(image_path):
-                images.append(image_path)
-                captions.append(f"Similarity: {result['similarity']:.3f}\nCaption: {result['caption']}")
+                caption = f"📊 Similarity: {result['similarity']:.3f}\n📝 {result['caption']}"
+                gallery_data.append((image_path, caption))
             else:
-                images.append(None)
-                captions.append(f"Image not found: {image_path}")
+                gallery_data.append((None, f"Image not found: {image_path}"))
 
-        return images, f"Found {len(results)} similar descriptions"
+        return gallery_data, f"Found {len(results)} similar descriptions"
 
     except Exception as e:
         return [], f"Error during search: {str(e)}"
@@ -198,16 +192,27 @@ def create_gradio_app():
         "person running", "cat sleeping", "blue sky", "water beach"
     ]
 
-    with gr.Blocks(title="🔍 Search Engine", theme=gr.themes.Soft()) as app:
+    with gr.Blocks(title="🔍 Search Engine", css="""
+        .gradio-container {
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+        }
+        .gallery {
+            border-radius: 8px !important;
+        }
+        .btn {
+            border-radius: 6px !important;
+        }
+        """) as app:
         gr.Markdown(description)
 
-        # Dataset information
+        # Dataset information and popular searches
         with gr.Row():
-            with gr.Column(scale=1):
+            with gr.Column(scale=2):
                 gr.Markdown(f"""
                 ### 📊 Dataset Information
                 - **Total Images**: {model_info.get('num_images', 'Unknown'):,}
-                - **Total Embeddings**: {model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown'):,}
+                - **Total Embeddings**: {model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown')):,}
                 - **Embedding Dimension**: {model_info.get('embedding_dim', 'Unknown')}D
                 - **Model**: {model_info.get('model_name', 'Unknown').split('/')[-1]}
                 - **Dataset**: {model_info.get('dataset', 'Unknown')}
@@ -219,25 +224,16 @@ def create_gradio_app():
                 ### 🔥 Popular Searches
                 Click any suggestion to search:
                 """)
-                # Create clickable search suggestions
-                for i, search in enumerate(popular_searches):
-                    if i % 2 == 0:
-                        with gr.Row():
-                            gr.Button(f"🔍 {search}", size="sm").click(
-                                lambda s=search: s, outputs=gr.Textbox(visible=False)
-                            ).then(
-                                search_images, 
-                                inputs=[gr.Textbox(value=search, visible=False), gr.Slider(1, 20, 5)],
-                                outputs=[gr.Gallery(), gr.Textbox()]
-                            )
-                    else:
-                        gr.Button(f"🔍 {search}", size="sm").click(
-                            lambda s=search: s, outputs=gr.Textbox(visible=False)
-                        ).then(
-                            search_images,
-                            inputs=[gr.Textbox(value=search, visible=False), gr.Slider(1, 20, 5)],
-                            outputs=[gr.Gallery(), gr.Textbox()]
-                        )
+                # Create clickable search suggestions in a compact grid
+                popular_buttons = []
+                with gr.Row():
+                    for i, search in enumerate(popular_searches[:4]):
+                        btn = gr.Button(f"🔍 {search}", size="sm")
+                        popular_buttons.append(btn)
+                with gr.Row():
+                    for i, search in enumerate(popular_searches[4:8]):
+                        btn = gr.Button(f"🔍 {search}", size="sm")
+                        popular_buttons.append(btn)
 
         # Main search interface
         with gr.Tabs():
@@ -249,8 +245,7 @@ def create_gradio_app():
                     with gr.Column(scale=3):
                         text_query = gr.Textbox(
                             label="Search Query",
-                            placeholder="e.g., 'a dog playing in the park' or 'children smiling'",
-                            info="Describe what you're looking for in the images"
+                            placeholder="e.g., 'a dog playing in the park' or 'children smiling'"
                         )
                         num_results_text = gr.Slider(
                             label="Number of Results",
@@ -290,6 +285,17 @@ def create_gradio_app():
                     outputs=[text_results, text_status]
                 )
 
+                # Connect popular search buttons to text query
+                for i, search in enumerate(popular_searches):
+                    popular_buttons[i].click(
+                        lambda s=search: s,
+                        outputs=text_query
+                    ).then(
+                        search_images,
+                        inputs=[text_query, num_results_text],
+                        outputs=[text_results, text_status]
+                    )
+
             # Image-to-Text Search Tab
             with gr.Tab("🖼️ Image-to-Text Search"):
                 gr.Markdown("Upload an image to find similar text descriptions:")
@@ -298,8 +304,7 @@ def create_gradio_app():
                     with gr.Column(scale=3):
                         image_input = gr.Image(
                             label="Upload Image",
-                            type="pil",
-                            info="Upload a clear image with a main subject for best results"
+                            type="pil"
                         )
                         num_results_image = gr.Slider(
                             label="Number of Results",
