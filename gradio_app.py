@@ -207,7 +207,7 @@ def create_gradio_app():
                 gr.Markdown(f"""
                 ### 📊 Dataset Information
                 - **Total Images**: {model_info.get('num_images', 'Unknown'):,}
-                - **Total Embeddings**: {model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown'):,}
+                - **Total Embeddings**: {model_info.get('total_embeddings', model_info.get('num_samples', 'Unknown')):,}
                 - **Embedding Dimension**: {model_info.get('embedding_dim', 'Unknown')}D
                 - **Model**: {model_info.get('model_name', 'Unknown').split('/')[-1]}
                 - **Dataset**: {model_info.get('dataset', 'Unknown')}
